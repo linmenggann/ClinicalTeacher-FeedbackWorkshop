@@ -7,10 +7,10 @@
 <style>
   :root{
     --bg:#f2f8fa;--ink:#143a47;--muted:#5b7a85;
-    /* 奇美黃藍配色 */
-    --teal:#3fa9c4;--teal-dark:#136b82;--teal-soft:#e2f4f8;--accent:#f5c400;--accent-dark:#d9ab00;
-    --card:#fff;--line:#d8e7ec;--shadow:0 10px 30px rgba(20,90,110,.10);--radius:16px;
-    --c1:#3fa9c4;--c2:#f5c400;--c3:#1c7e96;--c4:#86d0e0;--c5:#e0a800;
+    /* 奇美黃藍配色：Tiffany 藍為主、黃為輔 */
+    --teal:#0ABAB5;--teal-dark:#097f7b;--teal-soft:#e1f6f4;--accent:#f5c400;--accent-dark:#d9ab00;
+    --card:#fff;--line:#d6ecea;--shadow:0 10px 30px rgba(10,110,105,.10);--radius:16px;
+    --c1:#0ABAB5;--c2:#f5c400;--c3:#0a807c;--c4:#8fe0db;--c5:#e0a800;
   }
   *{box-sizing:border-box;}
   body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",-apple-system,"Segoe UI",sans-serif;
@@ -18,9 +18,7 @@
   .wrap{max-width:1100px;margin:0 auto;padding:0 20px;}
 
   header{color:#fff;padding:34px 0 28px;
-    background:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cpath d='M29 15h6v9h9v6h-9v9h-6v-9h-9v-6h9z' fill='%23ffffff' fill-opacity='0.08'/%3E%3C/svg%3E"),
-      linear-gradient(135deg,#5cc1d6 0%,#2f9cb6 55%,#1c7e96 100%);}
+    background:linear-gradient(135deg,#5fd6d0 0%,#19b3ad 55%,#0a807c 100%);}
   header .wrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;}
   header h1{margin:0;font-size:clamp(1.3rem,3vw,1.8rem);font-weight:800;}
   header .sub{margin:6px 0 0;color:rgba(255,255,255,.85);font-size:.92rem;}
@@ -180,7 +178,7 @@
 <script>
   // 與 index.html 相同的 Apps Script Web App 網址（doGet 回傳報名資料）
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_Nq9__BMhF1szoVIPsw3bJ1p4HfZEh0dkrL292-Vnto1FORFNX2Xw5zUjh9j36qD2/exec';
-  const PALETTE = ['#3fa9c4','#f5c400','#1c7e96','#86d0e0','#e0a800','#2f9cb6','#d9ab00'];
+  const PALETTE = ['#0ABAB5','#f5c400','#0a807c','#8fe0db','#e0a800','#13a7a1','#d9ab00'];
 
   let allRecords = [];
 
@@ -258,7 +256,7 @@
       legend.innerHTML += `<div class="li"><span class="dot" style="background:${col}"></span>
         <span class="lk">${k}</span><span class="lv">${v} 人 (${Math.round(frac*100)}%)</span></div>`;
     });
-    svg.innerHTML += `<text x="21" y="20" text-anchor="middle" font-size="6" font-weight="800" fill="#136b82">${total}</text>
+    svg.innerHTML += `<text x="21" y="20" text-anchor="middle" font-size="6" font-weight="800" fill="#097f7b">${total}</text>
       <text x="21" y="26" text-anchor="middle" font-size="3" fill="#5b7480">總人數</text>`;
   }
 

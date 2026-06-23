@@ -10,10 +10,10 @@
     --bg:#f2f8fa;
     --ink:#143a47;
     --muted:#5b7a85;
-    /* 奇美黃藍配色：藍為主、黃為輔 */
-    --teal:#3fa9c4;        /* 天藍 */
-    --teal-dark:#136b82;   /* 深藍（文字/標題） */
-    --teal-soft:#e2f4f8;   /* 淺藍底 */
+    /* 奇美黃藍配色：Tiffany 藍為主、黃為輔 */
+    --teal:#0ABAB5;        /* Tiffany 藍 */
+    --teal-dark:#097f7b;   /* 深 Tiffany 藍（文字/標題） */
+    --teal-soft:#e1f6f4;   /* 淺 Tiffany 藍底 */
     --accent:#f5c400;      /* 金黃 */
     --accent-dark:#d9ab00;
     --card:#ffffff;
@@ -39,9 +39,8 @@
     position:relative;
     color:#fff;
     background:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cpath d='M29 15h6v9h9v6h-9v9h-6v-9h-9v-6h9z' fill='%23ffffff' fill-opacity='0.08'/%3E%3C/svg%3E"),
-      radial-gradient(1200px 500px at 80% -10%, rgba(255,255,255,.20), transparent 60%),
-      linear-gradient(135deg,#5cc1d6 0%, #2f9cb6 55%, #1c7e96 100%);
+      radial-gradient(1200px 500px at 80% -10%, rgba(255,255,255,.22), transparent 60%),
+      linear-gradient(135deg,#5fd6d0 0%, #19b3ad 55%, #0a807c 100%);
     padding:64px 0 88px;
     overflow:hidden;
   }
@@ -137,7 +136,7 @@
 
   /* ---------- FORM ---------- */
   .form-section{
-    background:linear-gradient(135deg,#2f9cb6,#136b82);color:#fff;
+    background:linear-gradient(135deg,#19b3ad,#0a716e);color:#fff;
     border-radius:calc(var(--radius) + 6px);padding:38px 30px;box-shadow:var(--shadow);
   }
   .form-section .section-title{color:#fff;}
@@ -178,7 +177,7 @@
   .full-panel p{margin:0;color:#55707b;}
 
   /* ---------- FOOTER ---------- */
-  footer{background:#0e3c49;color:rgba(255,255,255,.85);padding:34px 0;margin-top:10px;}
+  footer{background:#0b3a38;color:rgba(255,255,255,.85);padding:34px 0;margin-top:10px;}
   footer .wrap{display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:center;}
   footer .org{font-weight:700;color:#fff;font-size:1.05rem;}
   footer .contact{font-size:.92rem;line-height:1.8;}
