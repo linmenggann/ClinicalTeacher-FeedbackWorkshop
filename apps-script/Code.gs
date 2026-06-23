@@ -65,11 +65,38 @@ function doPost(e) {
   }
 }
 
-/** 供瀏覽器直接開啟 /exec 網址時的健康檢查 */
+/**
+ * 提供報名資料給儀表板 (dashboard.html) 讀取。
+ * 回傳 JSON：{ result, count, records:[{time,name,empno,title,campus,dept,phone,email}] }
+ */
 function doGet() {
-  return ContentService
-    .createTextOutput('工作坊報名後端運作中。')
-    .setMimeType(ContentService.MimeType.TEXT);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName(SHEET_NAME);
+    var records = [];
+    if (sheet && sheet.getLastRow() > 1) {
+      var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.length).getValues();
+      records = values.map(function (r) {
+        return {
+          time:   r[0],
+          name:   r[1],
+          empno:  r[2],
+          title:  r[3],
+          campus: r[4],
+          dept:   r[5],
+          phone:  r[6],
+          email:  r[7]
+        };
+      });
+    }
+    return ContentService
+      .createTextOutput(JSON.stringify({ result: 'success', count: records.length, records: records }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ result: 'error', message: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 /** 一次性建立表頭（可在 Apps Script 編輯器中手動執行此函式） */

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>報名現況儀表板｜臨床教師的心理安全與支持式回饋工作坊</title>
+<style>
+  :root{
+    --bg:#f3f7f8;--ink:#1f3540;--muted:#5b7480;
+    --teal:#1f8a8a;--teal-dark:#136b6b;--teal-soft:#e6f3f3;--accent:#e8a14a;
+    --card:#fff;--line:#dde8ea;--shadow:0 10px 30px rgba(20,80,90,.10);--radius:16px;
+    --c1:#1f8a8a;--c2:#e8a14a;--c3:#5b8def;--c4:#9b6dd6;--c5:#e06b8b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",-apple-system,"Segoe UI",sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 20px;}
+
+  header{color:#fff;background:linear-gradient(135deg,#1f8a8a 0%,#15727f 55%,#0f5566 100%);padding:34px 0 28px;}
+  header .wrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;}
+  header h1{margin:0;font-size:clamp(1.3rem,3vw,1.8rem);font-weight:800;}
+  header .sub{margin:6px 0 0;color:rgba(255,255,255,.85);font-size:.92rem;}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-weight:700;font-size:.92rem;
+    border:none;border-radius:10px;padding:10px 18px;text-decoration:none;transition:transform .15s,background .15s;}
+  .btn-light{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.45);}
+  .btn-light:hover{background:rgba(255,255,255,.26);}
+  .updated{font-size:.82rem;color:rgba(255,255,255,.8);}
+
+  main{padding:28px 0 60px;}
+  .state{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:40px;text-align:center;color:var(--muted);box-shadow:var(--shadow);}
+  .spinner{width:34px;height:34px;border:4px solid var(--teal-soft);border-top-color:var(--teal);
+    border-radius:50%;margin:0 auto 14px;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:22px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;box-shadow:0 4px 14px rgba(20,80,90,.06);position:relative;overflow:hidden;}
+  .kpi .lab{color:var(--muted);font-size:.9rem;margin-bottom:8px;}
+  .kpi .num{font-size:2.3rem;font-weight:800;color:var(--teal-dark);line-height:1;}
+  .kpi .unit{font-size:.95rem;font-weight:600;color:var(--muted);margin-left:4px;}
+  .kpi .ico{position:absolute;right:16px;top:16px;width:38px;height:38px;border-radius:11px;
+    background:var(--teal-soft);color:var(--teal-dark);display:flex;align-items:center;justify-content:center;}
+  .kpi .ico svg{width:20px;height:20px;}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px 24px;box-shadow:0 4px 14px rgba(20,80,90,.06);}
+  .panel h2{margin:0 0 18px;font-size:1.12rem;font-weight:800;display:flex;align-items:center;gap:10px;}
+  .panel h2 .bar{width:5px;height:20px;border-radius:5px;background:var(--accent);}
+
+  /* donut */
+  .donut-wrap{display:flex;gap:22px;align-items:center;flex-wrap:wrap;}
+  .donut{flex:none;}
+  .legend{display:flex;flex-direction:column;gap:9px;flex:1;min-width:150px;}
+  .legend .li{display:flex;align-items:center;gap:9px;font-size:.92rem;}
+  .legend .dot{width:12px;height:12px;border-radius:3px;flex:none;}
+  .legend .lk{font-weight:600;}
+  .legend .lv{margin-left:auto;color:var(--muted);font-weight:600;}
+
+  /* bars */
+  .bars{display:flex;flex-direction:column;gap:13px;}
+  .barrow .top{display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:5px;}
+  .barrow .top .v{color:var(--muted);font-weight:700;}
+  .track{background:var(--teal-soft);border-radius:8px;height:14px;overflow:hidden;}
+  .fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--teal),var(--teal-dark));
+    width:0;transition:width .8s ease;}
+
+  /* trend */
+  .trend{display:flex;align-items:flex-end;gap:8px;height:170px;padding-top:10px;}
+  .tcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end;height:100%;}
+  .tcol .tb{width:100%;max-width:46px;background:linear-gradient(180deg,var(--accent),#d98a2c);
+    border-radius:6px 6px 0 0;min-height:3px;transition:height .8s ease;position:relative;}
+  .tcol .tb span{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:.78rem;
+    font-weight:700;color:var(--teal-dark);}
+  .tcol .tl{font-size:.74rem;color:var(--muted);white-space:nowrap;}
+
+  /* table */
+  .panel.full{margin-bottom:0;}
+  .tbl-tools{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .search{padding:9px 13px;border:1px solid var(--line);border-radius:9px;font:inherit;min-width:220px;}
+  .search:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(31,138,138,.15);}
+  .tbl-scroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:.92rem;}
+  th,td{padding:11px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;}
+  th{background:var(--teal-soft);color:var(--teal-dark);font-weight:700;position:sticky;top:0;}
+  tbody tr:hover{background:#f7fbfb;}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.82rem;font-weight:600;
+    background:var(--teal-soft);color:var(--teal-dark);}
+  .empty{text-align:center;color:var(--muted);padding:26px;}
+
+  footer{color:var(--muted);font-size:.85rem;text-align:center;padding:24px 0 40px;}
+
+  @media (max-width:760px){ .grid2{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <h1>報名現況儀表板</h1>
+      <p class="sub">臨床教師的心理安全與支持式回饋工作坊　·　115年7月4日（六）</p>
+    </div>
+    <div class="toolbar">
+      <span class="updated" id="updated"></span>
+      <button class="btn btn-light" id="refreshBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        重新整理
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div id="loading" class="state"><div class="spinner"></div>載入報名資料中…</div>
+    <div id="error" class="state" style="display:none;"></div>
+    <div id="content" style="display:none;">
+
+      <div class="kpis">
+        <div class="kpi"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="lab">總報名人數</div><div><span class="num" id="kTotal">0</span><span class="unit">人</span></div></div>
+        <div class="kpi"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+          <div class="lab">參與院區數</div><div><span class="num" id="kCampus">0</span><span class="unit">區</span></div></div>
+        <div class="kpi"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-9M14 17H5M5 7h.01M19 17h.01"/><circle cx="8" cy="7" r="2"/><circle cx="16" cy="17" r="2"/></svg></div>
+          <div class="lab">職稱類別</div><div><span class="num" id="kTitle">0</span><span class="unit">種</span></div></div>
+        <div class="kpi"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+          <div class="lab">最近報名時間</div><div><span class="num" id="kLast" style="font-size:1.25rem;">—</span></div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="panel">
+          <h2><span class="bar"></span>各院區報名分布</h2>
+          <div class="donut-wrap">
+            <svg class="donut" id="donut" width="170" height="170" viewBox="0 0 42 42"></svg>
+            <div class="legend" id="campusLegend"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h2><span class="bar"></span>職稱分布</h2>
+          <div class="bars" id="titleBars"></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:22px;">
+        <h2><span class="bar"></span>每日報名趨勢</h2>
+        <div class="trend" id="trend"></div>
+      </div>
+
+      <div class="panel full">
+        <h2><span class="bar"></span>報名名單</h2>
+        <div class="tbl-tools">
+          <input type="text" class="search" id="search" placeholder="搜尋姓名 / 單位 / 院區 / 職稱…">
+          <span class="updated" style="color:var(--muted);align-self:center;" id="tblCount"></span>
+        </div>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>#</th><th>報名時間</th><th>姓名</th><th>職稱</th><th>院區</th><th>單位</th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer>奇美醫療財團法人奇美醫院　教學部　·　資料來源：Google Sheets 即時報名資料</footer>
+
+<script>
+  // 與 index.html 相同的 Apps Script Web App 網址（doGet 回傳報名資料）
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_Nq9__BMhF1szoVIPsw3bJ1p4HfZEh0dkrL292-Vnto1FORFNX2Xw5zUjh9j36qD2/exec';
+  const PALETTE = ['#1f8a8a','#e8a14a','#5b8def','#9b6dd6','#e06b8b','#3bb6a6','#d98a2c'];
+
+  let allRecords = [];
+
+  const $ = id => document.getElementById(id);
+  const loading = $('loading'), errorBox = $('error'), content = $('content');
+
+  function fmtTime(t){
+    if(!t) return '—';
+    const d = new Date(t);
+    if(isNaN(d)) return String(t);
+    const p = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  function dateKey(t){
+    const d = new Date(t);
+    if(isNaN(d)) return String(t).slice(0,10);
+    const p = n => String(n).padStart(2,'0');
+    return `${d.getMonth()+1}/${d.getDate()}`;
+  }
+  function groupCount(arr, key){
+    const m = {};
+    arr.forEach(r => { const k = (r[key]||'未填').trim() || '未填'; m[k] = (m[k]||0)+1; });
+    return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+  }
+
+  function load(){
+    loading.style.display='block'; errorBox.style.display='none'; content.style.display='none';
+    fetch(SCRIPT_URL + '?t=' + Date.now())
+      .then(r => r.json())
+      .then(d => {
+        if(d.result !== 'success') throw new Error(d.message || '資料格式錯誤');
+        allRecords = d.records || [];
+        render();
+        loading.style.display='none'; content.style.display='block';
+        $('updated').textContent = '更新於 ' + fmtTime(new Date());
+      })
+      .catch(err => {
+        loading.style.display='none';
+        errorBox.style.display='block';
+        errorBox.innerHTML = '⚠️ 無法載入報名資料：' + err.message +
+          '<br><br>請確認 Apps Script 已部署且存取權限為「所有人」。';
+      });
+  }
+
+  function render(){
+    const total = allRecords.length;
+    const byCampus = groupCount(allRecords,'campus');
+    const byTitle = groupCount(allRecords,'title');
+
+    $('kTotal').textContent = total;
+    $('kCampus').textContent = byCampus.filter(([k])=>k!=='未填').length;
+    $('kTitle').textContent = byTitle.filter(([k])=>k!=='未填').length;
+    const lastT = allRecords.length ? allRecords[allRecords.length-1].time : null;
+    $('kLast').textContent = total ? fmtTime(lastT) : '—';
+
+    renderDonut(byCampus, total);
+    renderTitleBars(byTitle, total);
+    renderTrend();
+    renderTable(allRecords);
+  }
+
+  function renderDonut(data, total){
+    const svg = $('donut'), legend = $('campusLegend');
+    svg.innerHTML=''; legend.innerHTML='';
+    if(total===0){ legend.innerHTML='<span class="empty">尚無資料</span>'; return; }
+    const cx=21,cy=21,r=15.915, C=2*Math.PI*r;
+    svg.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#eef4f4" stroke-width="6"></circle>`;
+    let offset=0;
+    data.forEach(([k,v],i)=>{
+      const frac=v/total, len=frac*C, col=PALETTE[i%PALETTE.length];
+      svg.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="6"
+        stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-offset}"
+        transform="rotate(-90 ${cx} ${cy})"></circle>`;
+      offset += len;
+      legend.innerHTML += `<div class="li"><span class="dot" style="background:${col}"></span>
+        <span class="lk">${k}</span><span class="lv">${v} 人 (${Math.round(frac*100)}%)</span></div>`;
+    });
+    svg.innerHTML += `<text x="21" y="20" text-anchor="middle" font-size="6" font-weight="800" fill="#136b6b">${total}</text>
+      <text x="21" y="26" text-anchor="middle" font-size="3" fill="#5b7480">總人數</text>`;
+  }
+
+  function renderTitleBars(data, total){
+    const box=$('titleBars'); box.innerHTML='';
+    if(total===0){ box.innerHTML='<span class="empty">尚無資料</span>'; return; }
+    const max=Math.max(...data.map(d=>d[1]));
+    data.forEach(([k,v])=>{
+      const row=document.createElement('div'); row.className='barrow';
+      row.innerHTML=`<div class="top"><span>${k}</span><span class="v">${v} 人</span></div>
+        <div class="track"><div class="fill"></div></div>`;
+      box.appendChild(row);
+      requestAnimationFrame(()=>{ row.querySelector('.fill').style.width=(v/max*100)+'%'; });
+    });
+  }
+
+  function renderTrend(){
+    const box=$('trend'); box.innerHTML='';
+    if(allRecords.length===0){ box.innerHTML='<span class="empty">尚無資料</span>'; return; }
+    const m={};
+    allRecords.forEach(r=>{ const k=dateKey(r.time); m[k]=(m[k]||0)+1; });
+    const entries=Object.entries(m);
+    const max=Math.max(...entries.map(e=>e[1]));
+    entries.forEach(([k,v])=>{
+      const col=document.createElement('div'); col.className='tcol';
+      col.innerHTML=`<div class="tb"><span>${v}</span></div><div class="tl">${k}</div>`;
+      box.appendChild(col);
+      requestAnimationFrame(()=>{ col.querySelector('.tb').style.height=(v/max*100)+'%'; });
+    });
+  }
+
+  function renderTable(rows){
+    const tb=$('tbody'); tb.innerHTML='';
+    if(rows.length===0){ tb.innerHTML='<tr><td colspan="6" class="empty">尚無報名資料</td></tr>'; }
+    rows.forEach((r,i)=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${i+1}</td><td>${fmtTime(r.time)}</td><td>${esc(r.name)}</td>
+        <td>${esc(r.title)}</td><td><span class="pill">${esc(r.campus)}</span></td><td>${esc(r.dept)}</td>`;
+      tb.appendChild(tr);
+    });
+    $('tblCount').textContent = `共 ${rows.length} 筆`;
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+  $('search').addEventListener('input', e=>{
+    const q=e.target.value.trim().toLowerCase();
+    const f = q ? allRecords.filter(r =>
+      [r.name,r.dept,r.campus,r.title,r.empno].some(v=>String(v||'').toLowerCase().includes(q))) : allRecords;
+    renderTable(f);
+  });
+  $('refreshBtn').addEventListener('click', load);
+  load();
+</script>
+</body>
+</html>
