@@ -283,18 +283,6 @@
 
         <form id="regForm" novalidate>
           <div class="field">
-            <label for="name">姓名<span class="req">＊</span></label>
-            <input type="text" id="name" name="name" placeholder="請輸入姓名" required>
-          </div>
-          <div class="field">
-            <label for="empno">人事號<span class="req">＊</span></label>
-            <input type="text" id="empno" name="empno" placeholder="請輸入人事號" required>
-          </div>
-          <div class="field">
-            <label for="title">職稱<span class="req">＊</span></label>
-            <input type="text" id="title" name="title" placeholder="例：主治醫師、護理師" required>
-          </div>
-          <div class="field">
             <label for="campus">院區<span class="req">＊</span></label>
             <select id="campus" name="campus" required>
               <option value="" disabled selected>請選擇院區</option>
@@ -308,10 +296,22 @@
             <input type="text" id="dept" name="dept" placeholder="請輸入服務單位" required>
           </div>
           <div class="field">
+            <label for="name">姓名<span class="req">＊</span></label>
+            <input type="text" id="name" name="name" placeholder="請輸入姓名" required>
+          </div>
+          <div class="field">
+            <label for="empno">人事號<span class="req">＊</span></label>
+            <input type="text" id="empno" name="empno" placeholder="請輸入人事號" required>
+          </div>
+          <div class="field">
+            <label for="title">職稱<span class="req">＊</span></label>
+            <input type="text" id="title" name="title" placeholder="例：主治醫師、護理師" required>
+          </div>
+          <div class="field">
             <label for="phone">連絡電話／分機<span class="req">＊</span></label>
             <input type="text" id="phone" name="phone" placeholder="例：06-281-2811 分機 00000" required>
           </div>
-          <div class="field">
+          <div class="field full">
             <label for="email">E-mail<span class="req">＊</span></label>
             <input type="email" id="email" name="email" placeholder="name@mail.chimei.org.tw" required>
           </div>
@@ -380,11 +380,11 @@
     }
     const get = id => document.getElementById(id).value.trim();
     const data = {
+      campus: get('campus'),
+      dept:   get('dept'),
       name:   get('name'),
       empno:  get('empno'),
       title:  get('title'),
-      campus: get('campus'),
-      dept:   get('dept'),
       phone:  get('phone'),
       email:  get('email')
     };

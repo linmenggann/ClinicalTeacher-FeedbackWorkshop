@@ -20,7 +20,7 @@
  */
 
 var SHEET_NAME = '工作坊報名資料';
-var HEADERS = ['報名時間', '姓名', '人事號', '職稱', '院區', '單位', '連絡電話/分機', 'E-mail'];
+var HEADERS = ['報名時間', '院區', '單位', '姓名', '人事號', '職稱', '連絡電話/分機', 'E-mail'];
 var CAPACITY = 50; // 報名人數上限；達上限即停止受理
 
 /** 目前已報名人數（不含表頭） */
@@ -58,11 +58,11 @@ function doPost(e) {
     var timestamp = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy/MM/dd HH:mm:ss');
     sheet.appendRow([
       timestamp,
+      data.campus || '',
+      data.dept  || '',
       data.name  || '',
       data.empno || '',
       data.title || '',
-      data.campus || '',
-      data.dept  || '',
       data.phone || '',
       data.email || ''
     ]);
@@ -93,11 +93,11 @@ function doGet() {
       records = values.map(function (r) {
         return {
           time:   r[0],
-          name:   r[1],
-          empno:  r[2],
-          title:  r[3],
-          campus: r[4],
-          dept:   r[5],
+          campus: r[1],
+          dept:   r[2],
+          name:   r[3],
+          empno:  r[4],
+          title:  r[5],
           phone:  r[6],
           email:  r[7]
         };
