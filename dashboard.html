@@ -164,7 +164,7 @@
         </div>
         <div class="tbl-scroll">
           <table>
-            <thead><tr><th>#</th><th>報名時間</th><th>姓名</th><th>職稱</th><th>院區</th><th>單位</th></tr></thead>
+            <thead><tr><th>#</th><th>報名時間</th><th>院區</th><th>單位</th><th>姓名</th><th>職稱</th></tr></thead>
             <tbody id="tbody"></tbody>
           </table>
         </div>
@@ -281,8 +281,8 @@
     if(rows.length===0){ tb.innerHTML='<tr><td colspan="6" class="empty">尚無報名資料</td></tr>'; }
     rows.forEach((r,i)=>{
       const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${i+1}</td><td>${fmtTime(r.time)}</td><td>${esc(r.name)}</td>
-        <td>${esc(r.title)}</td><td><span class="pill">${esc(r.campus)}</span></td><td>${esc(r.dept)}</td>`;
+      tr.innerHTML=`<td>${i+1}</td><td>${fmtTime(r.time)}</td><td><span class="pill">${esc(r.campus)}</span></td>
+        <td>${esc(r.dept)}</td><td>${esc(r.name)}</td><td>${esc(r.title)}</td>`;
       tb.appendChild(tr);
     });
     $('tblCount').textContent = `共 ${rows.length} 筆`;
