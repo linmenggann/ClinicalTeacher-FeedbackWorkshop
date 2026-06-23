@@ -1,5 +1,5 @@
 /**
- * 臨床教師的心理安全與支持式回饋工作坊 — 線上報名後端
+ * 臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊 — 線上報名後端
  * 將網頁報名表單資料寫入 Google Sheets 試算表。
  *
  * 試算表：https://docs.google.com/spreadsheets/d/1oghXn_uNIrESKl-i7WZu8XyAyskizCGgtLnzCVdQNTw/edit
