@@ -141,7 +141,10 @@
         </div>
         <div class="panel">
           <h2><span class="bar"></span>職稱分布</h2>
-          <div class="bars" id="titleBars"></div>
+          <div class="donut-wrap">
+            <svg class="donut" id="titleDonut" width="170" height="170" viewBox="0 0 42 42"></svg>
+            <div class="legend" id="titleLegend"></div>
+          </div>
         </div>
       </div>
 
@@ -229,14 +232,14 @@
     const lastT = allRecords.length ? allRecords[allRecords.length-1].time : null;
     $('kLast').textContent = total ? fmtTime(lastT) : '—';
 
-    renderDonut(byCampus, total);
-    renderTitleBars(byTitle, total);
+    renderDonut('donut','campusLegend', byCampus, total);
+    renderDonut('titleDonut','titleLegend', byTitle, total);
     renderTrend();
     renderTable(allRecords);
   }
 
-  function renderDonut(data, total){
-    const svg = $('donut'), legend = $('campusLegend');
+  function renderDonut(svgId, legendId, data, total){
+    const svg = $(svgId), legend = $(legendId);
     svg.innerHTML=''; legend.innerHTML='';
     if(total===0){ legend.innerHTML='<span class="empty">尚無資料</span>'; return; }
     const cx=21,cy=21,r=15.915, C=2*Math.PI*r;
@@ -253,19 +256,6 @@
     });
     svg.innerHTML += `<text x="21" y="20" text-anchor="middle" font-size="6" font-weight="800" fill="#136b6b">${total}</text>
       <text x="21" y="26" text-anchor="middle" font-size="3" fill="#5b7480">總人數</text>`;
-  }
-
-  function renderTitleBars(data, total){
-    const box=$('titleBars'); box.innerHTML='';
-    if(total===0){ box.innerHTML='<span class="empty">尚無資料</span>'; return; }
-    const max=Math.max(...data.map(d=>d[1]));
-    data.forEach(([k,v])=>{
-      const row=document.createElement('div'); row.className='barrow';
-      row.innerHTML=`<div class="top"><span>${k}</span><span class="v">${v} 人</span></div>
-        <div class="track"><div class="fill"></div></div>`;
-      box.appendChild(row);
-      requestAnimationFrame(()=>{ row.querySelector('.fill').style.width=(v/max*100)+'%'; });
-    });
   }
 
   function renderTrend(){
