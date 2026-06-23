@@ -300,8 +300,8 @@
             <button type="reset" class="btn btn-ghost">清除重填</button>
           </div>
           <div class="success" id="successMsg">
-            <h3>✓ 報名資料已準備完成</h3>
-            <p>系統已開啟您的郵件軟體，請確認內容後按下「傳送」即完成報名。<br>若未自動開啟，請來電 06-281-2811 分機 57439 洽詢。</p>
+            <h3>✓ 報名成功</h3>
+            <p>您的報名資料已送出並記錄完成，感謝您的報名！<br>如有任何問題，請來電 06-281-2811 分機 57439 洽詢。</p>
           </div>
         </form>
       </div>
@@ -324,8 +324,14 @@
 </footer>
 
 <script>
+  // ===== Google Apps Script Web App 網址 =====
+  // 部署 apps-script/Code.gs 後，將取得的 /exec 網址貼到下方：
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/exec';
+
   const form = document.getElementById('regForm');
   const success = document.getElementById('successMsg');
+  const submitBtn = form.querySelector('button[type="submit"]');
+
   form.addEventListener('submit', function(e){
     e.preventDefault();
     if(!form.checkValidity()){
@@ -334,23 +340,37 @@
     }
     const get = id => document.getElementById(id).value.trim();
     const data = {
-      '姓名': get('name'),
-      '人事號': get('empno'),
-      '職稱': get('title'),
-      '院區': get('campus'),
-      '單位': get('dept'),
-      '連絡電話/分機': get('phone'),
-      'E-mail': get('email')
+      name:   get('name'),
+      empno:  get('empno'),
+      title:  get('title'),
+      campus: get('campus'),
+      dept:   get('dept'),
+      phone:  get('phone'),
+      email:  get('email')
     };
-    const subject = '【報名】臨床教師的心理安全與支持式回饋工作坊（115/7/4）';
-    const body =
-      '您好，茲報名「臨床教師的心理安全與支持式回饋工作坊」，報名資料如下：%0D%0A%0D%0A' +
-      Object.entries(data).map(([k,v]) => `${k}：${v}`).join('%0D%0A') +
-      '%0D%0A%0D%0A敬請協助確認，謝謝。';
-    const mailto = `mailto:b20715@mail.chimei.org.tw?subject=${encodeURIComponent(subject)}&body=${body}`;
-    window.location.href = mailto;
-    success.classList.add('show');
-    success.scrollIntoView({behavior:'smooth', block:'center'});
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '送出中…';
+
+    // 以 text/plain 送出可避免 CORS 預檢；Apps Script 端以 e.postData.contents 解析
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(data)
+    })
+    .then(function(){
+      form.reset();
+      success.classList.add('show');
+      success.scrollIntoView({behavior:'smooth', block:'center'});
+    })
+    .catch(function(){
+      alert('報名送出失敗，請稍後再試，或來電 06-281-2811 分機 57439 洽詢。');
+    })
+    .finally(function(){
+      submitBtn.disabled = false;
+      submitBtn.textContent = '送出報名';
+    });
   });
 </script>
 </body>
