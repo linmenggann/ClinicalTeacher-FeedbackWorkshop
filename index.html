@@ -165,19 +165,6 @@
   .success h3{margin:0 0 8px;color:var(--teal-dark);}
   .success.show{display:block;}
 
-  /* capacity bar */
-  .capacity{
-    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
-    border-radius:12px;padding:12px 18px;margin:4px 0 18px;font-size:.95rem;font-weight:600;
-  }
-  .capacity .cap-track{flex:1;min-width:140px;height:10px;border-radius:6px;
-    background:rgba(255,255,255,.18);overflow:hidden;}
-  .capacity .cap-fill{height:100%;border-radius:6px;width:0;
-    background:linear-gradient(90deg,#ffd089,#e8a14a);transition:width .8s ease;}
-  .capacity.is-full{background:rgba(224,107,139,.22);border-color:rgba(255,180,195,.5);}
-  .capacity.is-full .cap-fill{background:linear-gradient(90deg,#ff9bb0,#e06b8b);}
-
   /* full (額滿) panel */
   .full-panel{display:none;background:rgba(255,255,255,.97);color:var(--ink);
     border-radius:14px;padding:28px 24px;text-align:center;}
@@ -284,10 +271,6 @@
         <h2 class="section-title"><span class="bar" style="background:#ffd089;"></span>線上報名</h2>
         <p class="section-sub">本活動限額 <strong style="color:#ffd089;">50</strong> 名，額滿即停止受理。請填寫以下資料完成報名，標示 <span style="color:#ffd089;">＊</span> 為必填欄位。</p>
 
-        <div class="capacity" id="capacityBar">
-          <span id="capacityText">名額查詢中…</span>
-        </div>
-
         <div class="full-panel" id="fullPanel">
           <div class="full-badge">額滿</div>
           <h3>報名人數已達上限</h3>
@@ -366,43 +349,18 @@
   const form = document.getElementById('regForm');
   const success = document.getElementById('successMsg');
   const submitBtn = form.querySelector('button[type="submit"]');
-  const capacityBar = document.getElementById('capacityBar');
-  const capacityText = document.getElementById('capacityText');
   const fullPanel = document.getElementById('fullPanel');
 
-  // 向後端查詢目前報名人數，更新名額顯示；額滿則停止受理
+  // 向後端查詢目前報名人數；額滿則停止受理（不顯示名額進度）
   function refreshCapacity(){
     fetch(SCRIPT_URL + '?t=' + Date.now())
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(d.result !== 'success') return;
-        var count = d.count || 0;
         var cap = d.capacity || CAPACITY;
-        applyCapacity(count, cap, d.full || count >= cap);
+        if(d.full || (d.count || 0) >= cap) lockForm();
       })
-      .catch(function(){
-        capacityText.textContent = '（名額資訊暫時無法取得）';
-      });
-  }
-
-  function applyCapacity(count, cap, isFull){
-    var remaining = Math.max(0, cap - count);
-    var pct = Math.min(100, Math.round(count / cap * 100));
-    if(isFull){
-      capacityBar.classList.add('is-full');
-      capacityBar.innerHTML =
-        '<span>本活動限額 ' + cap + ' 名 · <strong>已額滿</strong></span>' +
-        '<div class="cap-track"><div class="cap-fill" style="width:100%"></div></div>';
-      lockForm();
-    } else {
-      capacityBar.classList.remove('is-full');
-      capacityBar.innerHTML =
-        '<span>名額 ' + cap + ' 名 · 已報名 ' + count + ' 名 · 剩餘 <strong>' + remaining + '</strong> 名</span>' +
-        '<div class="cap-track"><div class="cap-fill"></div></div>';
-      requestAnimationFrame(function(){
-        var f = capacityBar.querySelector('.cap-fill'); if(f) f.style.width = pct + '%';
-      });
-    }
+      .catch(function(){ /* 名額資訊暫時無法取得，維持可報名 */ });
   }
 
   function lockForm(){
@@ -435,7 +393,7 @@
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(d.result === 'success' && (d.full || (d.count||0) >= (d.capacity||CAPACITY))){
-          applyCapacity(d.count, d.capacity || CAPACITY, true);
+          lockForm();
           throw new Error('__FULL__');
         }
         // 以 text/plain 送出可避免 CORS 預檢；Apps Script 端以 e.postData.contents 解析
