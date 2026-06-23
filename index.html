@@ -7,16 +7,18 @@
 <meta name="description" content="奇美醫院教學部｜臨床教師的心理安全與支持式回饋工作坊（115年7月4日）線上報名">
 <style>
   :root{
-    --bg:#f3f7f8;
-    --ink:#1f3540;
-    --muted:#5b7480;
-    --teal:#1f8a8a;
-    --teal-dark:#136b6b;
-    --teal-soft:#e6f3f3;
-    --accent:#e8a14a;
+    --bg:#f2f8fa;
+    --ink:#143a47;
+    --muted:#5b7a85;
+    /* 奇美黃藍配色：藍為主、黃為輔 */
+    --teal:#3fa9c4;        /* 天藍 */
+    --teal-dark:#136b82;   /* 深藍（文字/標題） */
+    --teal-soft:#e2f4f8;   /* 淺藍底 */
+    --accent:#f5c400;      /* 金黃 */
+    --accent-dark:#d9ab00;
     --card:#ffffff;
-    --line:#dde8ea;
-    --shadow:0 10px 30px rgba(20,80,90,.10);
+    --line:#d8e7ec;
+    --shadow:0 10px 30px rgba(20,90,110,.10);
     --radius:18px;
   }
   *{box-sizing:border-box;}
@@ -37,8 +39,9 @@
     position:relative;
     color:#fff;
     background:
-      radial-gradient(1200px 500px at 80% -10%, rgba(255,255,255,.18), transparent 60%),
-      linear-gradient(135deg,#1f8a8a 0%, #15727f 55%, #0f5566 100%);
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cpath d='M29 15h6v9h9v6h-9v9h-6v-9h-9v-6h9z' fill='%23ffffff' fill-opacity='0.08'/%3E%3C/svg%3E"),
+      radial-gradient(1200px 500px at 80% -10%, rgba(255,255,255,.20), transparent 60%),
+      linear-gradient(135deg,#5cc1d6 0%, #2f9cb6 55%, #1c7e96 100%);
     padding:64px 0 88px;
     overflow:hidden;
   }
@@ -77,8 +80,8 @@
     font-weight:700;font-size:1rem;border:none;border-radius:12px;
     padding:13px 26px;text-decoration:none;transition:transform .15s,box-shadow .15s,background .15s;
   }
-  .btn-primary{background:var(--accent);color:#3a2a08;box-shadow:0 8px 20px rgba(232,161,74,.4);}
-  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(232,161,74,.5);}
+  .btn-primary{background:var(--accent);color:#5a4500;box-shadow:0 8px 20px rgba(245,196,0,.45);}
+  .btn-primary:hover{transform:translateY(-2px);background:var(--accent-dark);box-shadow:0 12px 26px rgba(245,196,0,.55);}
   .btn-ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.5);}
   .btn-ghost:hover{background:rgba(255,255,255,.22);}
 
@@ -126,7 +129,7 @@
   }
   .agenda-item:hover{transform:translateX(4px);box-shadow:var(--shadow);}
   .agenda-item.highlight{border-left:5px solid var(--teal);}
-  .agenda-item.break{background:#fbf6ec;border-color:#f0e2c6;}
+  .agenda-item.break{background:#fff7d6;border-color:#f4e3a3;}
   .a-time{font-weight:800;color:var(--teal-dark);font-size:1.02rem;white-space:nowrap;}
   .a-topic{font-weight:700;font-size:1.06rem;margin:0 0 4px;}
   .a-speaker{color:var(--muted);font-size:.92rem;margin:0;}
@@ -134,7 +137,7 @@
 
   /* ---------- FORM ---------- */
   .form-section{
-    background:linear-gradient(135deg,#15727f,#0f5566);color:#fff;
+    background:linear-gradient(135deg,#2f9cb6,#136b82);color:#fff;
     border-radius:calc(var(--radius) + 6px);padding:38px 30px;box-shadow:var(--shadow);
   }
   .form-section .section-title{color:#fff;}
@@ -143,7 +146,7 @@
   .field{display:flex;flex-direction:column;gap:7px;}
   .field.full{grid-column:1 / -1;}
   label{font-size:.92rem;font-weight:600;}
-  label .req{color:#ffd089;margin-left:3px;}
+  label .req{color:#ffda6b;margin-left:3px;}
   input,select{
     font:inherit;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.35);
     background:rgba(255,255,255,.96);color:var(--ink);width:100%;
@@ -151,7 +154,7 @@
   select{appearance:none;-webkit-appearance:none;cursor:pointer;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231f3540' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 14px center;padding-right:38px;}
-  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,161,74,.4);}
+  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,196,0,.4);}
   .hint{font-size:.78rem;color:rgba(255,255,255,.7);}
   .form-actions{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:6px;}
   .note{
@@ -175,11 +178,11 @@
   .full-panel p{margin:0;color:#55707b;}
 
   /* ---------- FOOTER ---------- */
-  footer{background:#0e424c;color:rgba(255,255,255,.85);padding:34px 0;margin-top:10px;}
+  footer{background:#0e3c49;color:rgba(255,255,255,.85);padding:34px 0;margin-top:10px;}
   footer .wrap{display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:center;}
   footer .org{font-weight:700;color:#fff;font-size:1.05rem;}
   footer .contact{font-size:.92rem;line-height:1.8;}
-  footer a{color:#ffd089;}
+  footer a{color:#ffda6b;}
 
   @media (max-width:640px){
     .agenda-item{grid-template-columns:1fr;gap:6px;}
@@ -268,8 +271,8 @@
   <section id="register" style="padding-top:0;">
     <div class="wrap">
       <div class="form-section">
-        <h2 class="section-title"><span class="bar" style="background:#ffd089;"></span>線上報名</h2>
-        <p class="section-sub">本活動限額 <strong style="color:#ffd089;">50</strong> 名，額滿即停止受理。請填寫以下資料完成報名，標示 <span style="color:#ffd089;">＊</span> 為必填欄位。</p>
+        <h2 class="section-title"><span class="bar" style="background:#ffda6b;"></span>線上報名</h2>
+        <p class="section-sub">本活動限額 <strong style="color:#ffda6b;">50</strong> 名，額滿即停止受理。請填寫以下資料完成報名，標示 <span style="color:#ffda6b;">＊</span> 為必填欄位。</p>
 
         <div class="full-panel" id="fullPanel">
           <div class="full-badge">額滿</div>
