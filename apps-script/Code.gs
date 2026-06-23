@@ -21,6 +21,13 @@
 
 var SHEET_NAME = '工作坊報名資料';
 var HEADERS = ['報名時間', '姓名', '人事號', '職稱', '院區', '單位', '連絡電話/分機', 'E-mail'];
+var CAPACITY = 50; // 報名人數上限；達上限即停止受理
+
+/** 目前已報名人數（不含表頭） */
+function countRegistrations(sheet) {
+  if (!sheet) return 0;
+  return Math.max(0, sheet.getLastRow() - 1);
+}
 
 /** 接收網頁 POST 並寫入試算表 */
 function doPost(e) {
@@ -39,6 +46,13 @@ function doPost(e) {
       sheet.appendRow(HEADERS);
       sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight('bold');
       sheet.setFrozenRows(1);
+    }
+
+    // 達報名上限即拒絕，避免超收
+    if (countRegistrations(sheet) >= CAPACITY) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ result: 'full', capacity: CAPACITY }))
+        .setMimeType(ContentService.MimeType.JSON);
     }
 
     var timestamp = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy/MM/dd HH:mm:ss');
@@ -90,7 +104,13 @@ function doGet() {
       });
     }
     return ContentService
-      .createTextOutput(JSON.stringify({ result: 'success', count: records.length, records: records }))
+      .createTextOutput(JSON.stringify({
+        result: 'success',
+        count: records.length,
+        capacity: CAPACITY,
+        full: records.length >= CAPACITY,
+        records: records
+      }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
     return ContentService
