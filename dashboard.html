@@ -7,27 +7,28 @@
 <style>
   :root{
     --bg:#f2f8fa;--ink:#143a47;--muted:#5b7a85;
-    /* 奇美黃藍配色：水藍為主、黃為輔 */
-    --teal:#45b6dc;--teal-dark:#1f87b0;--teal-soft:#e4f4fb;--accent:#f5c400;--accent-dark:#d9ab00;
+    /* 奇美黃藍配色（黃藍對調）：黃為主、水藍為輔 */
+    --teal:#45b6dc;--teal-dark:#1f87b0;--teal-soft:#e4f4fb;--accent:#1f9bc9;--accent-dark:#1a82ab;
+    --gold:#f5c400;--gold-dark:#e0a800;
     --card:#fff;--line:#d6e9f1;--shadow:0 10px 30px rgba(30,120,150,.10);--radius:16px;
-    --c1:#45b6dc;--c2:#f5c400;--c3:#1f87b0;--c4:#a6def3;--c5:#e0a800;
+    --c1:#f5c400;--c2:#1f9bc9;--c3:#e0a800;--c4:#7fd4ef;--c5:#1f87b0;
   }
   *{box-sizing:border-box;}
   body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",-apple-system,"Segoe UI",sans-serif;
     color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;}
   .wrap{max-width:1100px;margin:0 auto;padding:0 20px;}
 
-  header{color:#fff;padding:34px 0 28px;
-    background:linear-gradient(135deg,#7fd4ef 0%,#3eaeda 55%,#1f87b0 100%);}
+  header{color:#143a47;padding:34px 0 28px;
+    background:linear-gradient(135deg,#ffe066 0%,#f5c400 55%,#ecb200 100%);}
   header .wrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;}
   header h1{margin:0;font-size:clamp(1.3rem,3vw,1.8rem);font-weight:800;}
-  header .sub{margin:6px 0 0;color:rgba(255,255,255,.85);font-size:.92rem;}
+  header .sub{margin:6px 0 0;color:#1d4a59;font-size:.92rem;}
   .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
   .btn{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-weight:700;font-size:.92rem;
     border:none;border-radius:10px;padding:10px 18px;text-decoration:none;transition:transform .15s,background .15s;}
-  .btn-light{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.45);}
-  .btn-light:hover{background:rgba(255,255,255,.26);}
-  .updated{font-size:.82rem;color:rgba(255,255,255,.8);}
+  .btn-light{background:rgba(255,255,255,.45);color:#16414f;border:1px solid rgba(20,60,80,.25);}
+  .btn-light:hover{background:rgba(255,255,255,.7);}
+  .updated{font-size:.82rem;color:#1d4a59;}
 
   main{padding:28px 0 60px;}
   .state{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
@@ -178,7 +179,7 @@
 <script>
   // 與 index.html 相同的 Apps Script Web App 網址（doGet 回傳報名資料）
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_Nq9__BMhF1szoVIPsw3bJ1p4HfZEh0dkrL292-Vnto1FORFNX2Xw5zUjh9j36qD2/exec';
-  const PALETTE = ['#45b6dc','#f5c400','#1f87b0','#a6def3','#e0a800','#2f9cc4','#d9ab00'];
+  const PALETTE = ['#f5c400','#1f9bc9','#e0a800','#7fd4ef','#1f87b0','#f0c84d','#2f9cc4'];
 
   let allRecords = [];
 

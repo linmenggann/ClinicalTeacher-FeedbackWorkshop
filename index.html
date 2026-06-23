@@ -10,12 +10,14 @@
     --bg:#f2f8fa;
     --ink:#143a47;
     --muted:#5b7a85;
-    /* 奇美黃藍配色：水藍為主、黃為輔 */
-    --teal:#45b6dc;        /* 水藍 */
-    --teal-dark:#1f87b0;   /* 深水藍（文字/標題） */
+    /* 奇美黃藍配色（黃藍對調）：黃為主、水藍為輔 */
+    --teal:#45b6dc;        /* 水藍（強調/結構） */
+    --teal-dark:#1f87b0;   /* 深水藍（文字/標題/強調） */
     --teal-soft:#e4f4fb;   /* 淺水藍底 */
-    --accent:#f5c400;      /* 金黃 */
-    --accent-dark:#d9ab00;
+    --accent:#1f9bc9;      /* 水藍（強調，原為黃） */
+    --accent-dark:#1a82ab;
+    --gold:#f5c400;        /* 金黃（主色，原為藍） */
+    --gold-dark:#e0a800;
     --card:#ffffff;
     --line:#d8e7ec;
     --shadow:0 10px 30px rgba(20,90,110,.10);
@@ -37,10 +39,10 @@
   /* ---------- HERO ---------- */
   .hero{
     position:relative;
-    color:#fff;
+    color:#143a47;
     background:
-      radial-gradient(1200px 500px at 80% -10%, rgba(255,255,255,.22), transparent 60%),
-      linear-gradient(135deg,#7fd4ef 0%, #3eaeda 55%, #1f87b0 100%);
+      radial-gradient(1200px 500px at 80% -10%, rgba(255,255,255,.35), transparent 60%),
+      linear-gradient(135deg,#ffe066 0%, #f5c400 55%, #ecb200 100%);
     padding:64px 0 88px;
     overflow:hidden;
   }
@@ -51,10 +53,10 @@
   }
   .hero .wrap{position:relative;z-index:2;}
   .badge{
-    display:inline-block;background:rgba(255,255,255,.16);
-    border:1px solid rgba(255,255,255,.35);
+    display:inline-block;background:rgba(255,255,255,.55);
+    border:1px solid rgba(20,60,80,.18);
     padding:6px 16px;border-radius:999px;font-size:.85rem;letter-spacing:.05em;
-    margin-bottom:18px;backdrop-filter:blur(4px);
+    margin-bottom:18px;backdrop-filter:blur(4px);font-weight:600;
   }
   .hero h1{
     margin:0 0 16px;font-size:clamp(1.7rem,4.4vw,2.9rem);
@@ -62,27 +64,27 @@
   }
   .hero p.lead{
     margin:0;max-width:760px;font-size:clamp(.98rem,1.6vw,1.08rem);
-    color:rgba(255,255,255,.92);
+    color:#1d4a59;
   }
   .hero-meta{
     display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:26px;
   }
   .chip{
     display:inline-flex;align-items:center;gap:8px;
-    background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);
+    background:rgba(255,255,255,.45);border:1px solid rgba(20,60,80,.14);
     padding:9px 15px;border-radius:12px;font-size:.92rem;font-weight:600;
   }
-  .chip svg{width:18px;height:18px;flex:none;opacity:.9;}
+  .chip svg{width:18px;height:18px;flex:none;opacity:.85;}
   .cta-row{margin-top:30px;display:flex;flex-wrap:wrap;gap:12px;}
   .btn{
     display:inline-flex;align-items:center;gap:8px;cursor:pointer;
     font-weight:700;font-size:1rem;border:none;border-radius:12px;
     padding:13px 26px;text-decoration:none;transition:transform .15s,box-shadow .15s,background .15s;
   }
-  .btn-primary{background:var(--accent);color:#5a4500;box-shadow:0 8px 20px rgba(245,196,0,.45);}
-  .btn-primary:hover{transform:translateY(-2px);background:var(--accent-dark);box-shadow:0 12px 26px rgba(245,196,0,.55);}
-  .btn-ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.5);}
-  .btn-ghost:hover{background:rgba(255,255,255,.22);}
+  .btn-primary{background:var(--accent);color:#fff;box-shadow:0 8px 20px rgba(31,135,176,.4);}
+  .btn-primary:hover{transform:translateY(-2px);background:var(--accent-dark);box-shadow:0 12px 26px rgba(31,135,176,.5);}
+  .btn-ghost{background:rgba(255,255,255,.35);color:#16414f;border:1px solid rgba(20,60,80,.3);}
+  .btn-ghost:hover{background:rgba(255,255,255,.6);}
 
   /* ---------- SECTIONS ---------- */
   section{padding:46px 0;}
@@ -128,7 +130,7 @@
   }
   .agenda-item:hover{transform:translateX(4px);box-shadow:var(--shadow);}
   .agenda-item.highlight{border-left:5px solid var(--teal);}
-  .agenda-item.break{background:#fff7d6;border-color:#f4e3a3;}
+  .agenda-item.break{background:#e9f6fb;border-color:#bfe4f2;}
   .a-time{font-weight:800;color:var(--teal-dark);font-size:1.02rem;white-space:nowrap;}
   .a-topic{font-weight:700;font-size:1.06rem;margin:0 0 4px;}
   .a-speaker{color:var(--muted);font-size:.92rem;margin:0;}
@@ -136,29 +138,29 @@
 
   /* ---------- FORM ---------- */
   .form-section{
-    background:linear-gradient(135deg,#3eaeda,#1c7a9e);color:#fff;
+    background:linear-gradient(135deg,#ffd83a,#f0b400);color:#16414f;
     border-radius:calc(var(--radius) + 6px);padding:38px 30px;box-shadow:var(--shadow);
   }
-  .form-section .section-title{color:#fff;}
-  .form-section .section-sub{color:rgba(255,255,255,.85);}
+  .form-section .section-title{color:#143a47;}
+  .form-section .section-sub{color:rgba(20,58,71,.8);}
   form{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:8px;}
   .field{display:flex;flex-direction:column;gap:7px;}
   .field.full{grid-column:1 / -1;}
   label{font-size:.92rem;font-weight:600;}
-  label .req{color:#ffda6b;margin-left:3px;}
+  label .req{color:#c0392b;margin-left:3px;}
   input,select{
-    font:inherit;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.35);
+    font:inherit;padding:12px 14px;border-radius:10px;border:1px solid rgba(20,60,80,.18);
     background:rgba(255,255,255,.96);color:var(--ink);width:100%;
   }
   select{appearance:none;-webkit-appearance:none;cursor:pointer;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231f3540' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 14px center;padding-right:38px;}
-  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,196,0,.4);}
-  .hint{font-size:.78rem;color:rgba(255,255,255,.7);}
+  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(31,155,201,.35);}
+  .hint{font-size:.78rem;color:rgba(20,58,71,.65);}
   .form-actions{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:6px;}
   .note{
-    grid-column:1 / -1;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
-    border-radius:10px;padding:12px 16px;font-size:.86rem;color:rgba(255,255,255,.92);
+    grid-column:1 / -1;background:rgba(255,255,255,.4);border:1px solid rgba(20,60,80,.12);
+    border-radius:10px;padding:12px 16px;font-size:.86rem;color:#1d4a59;
   }
   .success{
     grid-column:1/-1;display:none;background:rgba(255,255,255,.97);color:var(--ink);
@@ -181,7 +183,7 @@
   footer .wrap{display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:center;}
   footer .org{font-weight:700;color:#fff;font-size:1.05rem;}
   footer .contact{font-size:.92rem;line-height:1.8;}
-  footer a{color:#ffda6b;}
+  footer a{color:#8fd3ef;}
 
   @media (max-width:640px){
     .agenda-item{grid-template-columns:1fr;gap:6px;}
@@ -243,9 +245,9 @@
         <div class="info-card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><div><div class="k">日期</div><div class="v">115年7月4日（六）</div></div></div>
         <div class="info-card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div><div class="k">時間</div><div class="v">12:50 ~ 16:15<br><span style="font-weight:500;color:var(--muted);font-size:.85rem;">（12:30 開始報到）</span></div></div></div>
         <div class="info-card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div><div><div class="k">地點</div><div class="v">奇美醫院第三醫療大樓 331・332 會議室<br><span style="font-weight:500;color:var(--muted);font-size:.85rem;">臺南市永康區中華路901號</span></div></div></div>
-        <div class="info-card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div><div class="k">對象</div><div class="v" style="font-size:.95rem;">奇美醫療體系三院區內訓練計畫主持人及臨床教師</div></div></div>
+        <div class="info-card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div><div class="k">對象</div><div class="v" style="font-size:.95rem;">奇美醫療體系三院區訓練計畫主持人及臨床教師</div></div></div>
         <div class="info-card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div><div class="k">主持</div><div class="v">教學部 蘇慧真 部長</div></div></div>
-        <div class="info-card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div><div><div class="k">學分</div><div class="v" style="font-size:.95rem;">臨床教師認證 Ac 類<br><span style="font-weight:500;color:var(--muted);font-size:.85rem;">「敘事醫學」1學分、「進階」2學分</span></div></div></div>
+        <div class="info-card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div><div><div class="k">學分</div><div class="v" style="font-size:.95rem;">臨床教師認證「進階」2學分<br><span style="font-weight:500;color:var(--muted);font-size:.85rem;">Ac 類「敘事醫學」1學分</span></div></div></div>
       </div>
     </div>
   </section>
@@ -254,13 +256,13 @@
   <section id="agenda" style="padding-top:0;">
     <div class="wrap">
       <h2 class="section-title"><span class="bar"></span>課程議程</h2>
-      <p class="section-sub">115年7月4日（六）｜講師：芯寬欣心理治療所 王興豪 副院長兼臨床心理師</p>
+      <p class="section-sub">115年7月4日（六）｜講師：王興豪 芯寬欣心理治療所副院長兼臨床心理師</p>
       <div class="agenda">
         <div class="agenda-item"><div class="a-time">12:30–12:50</div><div><p class="a-topic">報到</p></div></div>
         <div class="agenda-item"><div class="a-time">12:50–13:00</div><div><p class="a-topic">長官致詞</p></div></div>
-        <div class="agenda-item highlight"><div class="a-time">13:00–14:30</div><div><p class="a-topic">臨床教師的心理安全與自我照顧</p><p class="a-speaker"><strong>芯寬欣心理治療所</strong>　王興豪 副院長兼臨床心理師</p></div></div>
+        <div class="agenda-item highlight"><div class="a-time">13:00–14:30</div><div><p class="a-topic">臨床教師的心理安全與自我照顧</p><p class="a-speaker"><strong style="font-size:1.15rem;">王興豪</strong>　芯寬欣心理治療所副院長兼臨床心理師</p></div></div>
         <div class="agenda-item break"><div class="a-time">14:30–14:45</div><div><p class="a-topic">☕ Coffee Break</p></div></div>
-        <div class="agenda-item highlight"><div class="a-time">14:45–16:00</div><div><p class="a-topic">支持式回饋的實務應用</p><p class="a-speaker"><strong>芯寬欣心理治療所</strong>　王興豪 副院長兼臨床心理師</p></div></div>
+        <div class="agenda-item highlight"><div class="a-time">14:45–16:00</div><div><p class="a-topic">支持式回饋的實務應用</p><p class="a-speaker"><strong style="font-size:1.15rem;">王興豪</strong>　芯寬欣心理治療所副院長兼臨床心理師</p></div></div>
         <div class="agenda-item"><div class="a-time">16:00–16:15</div><div><p class="a-topic">綜合討論</p></div></div>
       </div>
     </div>
@@ -270,8 +272,8 @@
   <section id="register" style="padding-top:0;">
     <div class="wrap">
       <div class="form-section">
-        <h2 class="section-title"><span class="bar" style="background:#ffda6b;"></span>線上報名</h2>
-        <p class="section-sub">本活動限額 <strong style="color:#ffda6b;">50</strong> 名，額滿即停止受理。請填寫以下資料完成報名，標示 <span style="color:#ffda6b;">＊</span> 為必填欄位。</p>
+        <h2 class="section-title"><span class="bar" style="background:var(--accent);"></span>線上報名</h2>
+        <p class="section-sub">本活動限額 <strong style="color:#1c5f7a;">50</strong> 名，額滿即停止受理。請填寫以下資料完成報名，標示 <span style="color:#c0392b;">＊</span> 為必填欄位。</p>
 
         <div class="full-panel" id="fullPanel">
           <div class="full-badge">額滿</div>
