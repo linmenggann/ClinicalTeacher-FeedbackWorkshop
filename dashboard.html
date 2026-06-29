@@ -209,7 +209,7 @@
   }
   function groupCount(arr, key){
     const m = {};
-    arr.forEach(r => { const k = (r[key]||'未填').trim() || '未填'; m[k] = (m[k]||0)+1; });
+    arr.forEach(r => { const k = String(r[key] == null ? '' : r[key]).trim() || '未填'; m[k] = (m[k]||0)+1; });
     return Object.entries(m).sort((a,b)=>b[1]-a[1]);
   }
 
