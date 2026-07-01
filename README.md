@@ -8,7 +8,9 @@
 |------|------|
 | `index.html` | 響應式報名網頁（主視覺、活動資訊、議程、線上報名表單） |
 | `dashboard.html` | 報名現況儀表板（直接讀取 Google Sheets GViz 端點） |
-| `apps-script/Code.gs` | Google Apps Script 後端，將報名資料寫入 Google Sheets |
+| `checkin.html` | 當天現場報到頁（輸入人事號即完成報到） |
+| `checkin-dashboard.html` | 報到現況儀表板（報到率、各院區報到、已/未報到名單） |
+| `apps-script/Code.gs` | Google Apps Script 後端，處理報名與報到寫入 |
 
 ## 串接 Google Sheets 報名（重要）
 
@@ -54,3 +56,26 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/XXXXX.../exec';
 
 - 資料讀取為唯讀；寫入（報名）仍透過 Apps Script。
 - 若日後調整欄位順序，儀表板會依**標題名稱**自動對應，無需改程式。
+
+## 當天現場報到（checkin.html + checkin-dashboard.html）
+
+報到資料寫入試算表的 **「工作坊報到資料」** 分頁（首次報到時由 Apps Script 自動建立，或先在 Apps Script 執行 `setupCheckinSheet`）。表頭：
+
+| A | B | C | D | E | F |
+|---|---|---|---|---|---|
+| 報到時間 | 人事號 | 院區 | 單位 | 姓名 | 職稱 |
+
+### 報到頁 `checkin.html`
+
+- 報到者只需輸入 **人事號** → 按「報到」。
+- 後端會以人事號比對「工作坊報名資料」：
+  - **找到且未報到** → 寫入報到資料，回傳姓名並顯示「報到成功」。
+  - **已報到** → 顯示「已完成報到」，不重複寫入。
+  - **查無報名** → 顯示提醒，不寫入。
+- 沿用同一組 Apps Script `/exec` 網址（以 `action:'checkin'` 分流），無需另外部署新網址；但更新 `Code.gs` 後需**重新部署新版本**。
+
+### 報到儀表板 `checkin-dashboard.html`
+
+- 同時讀取「工作坊報名資料」與「工作坊報到資料」兩個 GViz 端點。
+- 顯示：報名人數、已報到、報到率、未報到；報到狀況與各院區報到圓餅圖、報到時段分布，以及**已報到／未報到名單**（可搜尋）。
+- 同樣需要試算表共用設為「知道連結的任何人 → 檢視者」。

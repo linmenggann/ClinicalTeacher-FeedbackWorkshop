@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>報到現況儀表板｜臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊</title>
+<style>
+  :root{
+    --bg:#f2f8fa;--ink:#143a47;--muted:#5b7a85;
+    --teal:#45b6dc;--teal-dark:#1f87b0;--teal-soft:#e4f4fb;--accent:#1f9bc9;--accent-dark:#1a82ab;
+    --gold:#f5c400;--gold-dark:#e0a800;
+    --card:#fff;--line:#d6e9f1;--shadow:0 10px 30px rgba(30,120,150,.10);--radius:16px;
+    --c1:#f5c400;--c2:#1f9bc9;--c3:#e0a800;--c4:#7fd4ef;--c5:#1f87b0;
+    --ok:#1e9e6a;--pending:#e0a800;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",-apple-system,"Segoe UI",sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 20px;}
+
+  header{color:#143a47;padding:34px 0 28px;
+    background:linear-gradient(135deg,#ffe066 0%,#f5c400 55%,#ecb200 100%);}
+  header .wrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;}
+  header h1{margin:0;font-size:clamp(1.3rem,3vw,1.8rem);font-weight:800;}
+  header .sub{margin:6px 0 0;color:#1d4a59;font-size:.92rem;}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-weight:700;font-size:.92rem;
+    border:none;border-radius:10px;padding:10px 18px;text-decoration:none;transition:transform .15s,background .15s;}
+  .btn-light{background:rgba(255,255,255,.45);color:#16414f;border:1px solid rgba(20,60,80,.25);}
+  .btn-light:hover{background:rgba(255,255,255,.7);}
+  .updated{font-size:.82rem;color:#1d4a59;}
+
+  main{padding:28px 0 60px;}
+  .state{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:40px;text-align:center;color:var(--muted);box-shadow:var(--shadow);}
+  .spinner{width:34px;height:34px;border:4px solid var(--teal-soft);border-top-color:var(--teal);
+    border-radius:50%;margin:0 auto 14px;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:22px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;box-shadow:0 4px 14px rgba(20,80,90,.06);position:relative;overflow:hidden;}
+  .kpi .lab{color:var(--muted);font-size:.9rem;margin-bottom:8px;}
+  .kpi .num{font-size:2.3rem;font-weight:800;color:var(--teal-dark);line-height:1;}
+  .kpi .unit{font-size:.95rem;font-weight:600;color:var(--muted);margin-left:4px;}
+  .kpi.rate .num{color:var(--ok);}
+  .kpi .ico{position:absolute;right:16px;top:16px;width:38px;height:38px;border-radius:11px;
+    background:var(--teal-soft);color:var(--teal-dark);display:flex;align-items:center;justify-content:center;}
+  .kpi .ico svg{width:20px;height:20px;}
+
+  .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-bottom:22px;}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px 24px;box-shadow:0 4px 14px rgba(20,80,90,.06);}
+  .panel h2{margin:0 0 18px;font-size:1.12rem;font-weight:800;display:flex;align-items:center;gap:10px;}
+  .panel h2 .bar{width:5px;height:20px;border-radius:5px;background:var(--accent);}
+
+  .donut-wrap{display:flex;gap:22px;align-items:center;flex-wrap:wrap;}
+  .donut{flex:none;}
+  .legend{display:flex;flex-direction:column;gap:9px;flex:1;min-width:150px;}
+  .legend .li{display:flex;align-items:center;gap:9px;font-size:.92rem;}
+  .legend .dot{width:12px;height:12px;border-radius:3px;flex:none;}
+  .legend .lk{font-weight:600;}
+  .legend .lv{margin-left:auto;color:var(--muted);font-weight:600;}
+
+  .trend{display:flex;align-items:flex-end;gap:8px;height:170px;padding-top:10px;}
+  .tcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end;height:100%;}
+  .tcol .tb{width:100%;max-width:46px;background:linear-gradient(180deg,var(--accent),var(--accent-dark));
+    border-radius:6px 6px 0 0;min-height:3px;transition:height .8s ease;position:relative;}
+  .tcol .tb span{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:.78rem;
+    font-weight:700;color:var(--teal-dark);}
+  .tcol .tl{font-size:.74rem;color:var(--muted);white-space:nowrap;}
+
+  .tbl-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .tbl-tab{cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--muted);
+    border-radius:999px;padding:7px 16px;font-size:.9rem;font-weight:700;}
+  .tbl-tab.active{background:var(--teal-soft);color:var(--teal-dark);border-color:var(--teal);}
+  .tbl-tools{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .search{padding:9px 13px;border:1px solid var(--line);border-radius:9px;font:inherit;min-width:220px;}
+  .search:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(31,138,138,.15);}
+  .tbl-scroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:.92rem;}
+  th,td{padding:11px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;}
+  th{background:var(--teal-soft);color:var(--teal-dark);font-weight:700;}
+  tbody tr:hover{background:#f7fbfb;}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.82rem;font-weight:600;
+    background:var(--teal-soft);color:var(--teal-dark);}
+  .empty{text-align:center;color:var(--muted);padding:26px;}
+
+  footer{color:var(--muted);font-size:.85rem;text-align:center;padding:24px 0 40px;}
+  @media (max-width:760px){ .charts{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <h1>報到現況儀表板</h1>
+      <p class="sub">臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊　·　115年7月4日（六）</p>
+    </div>
+    <div class="toolbar">
+      <span class="updated" id="updated"></span>
+      <button class="btn btn-light" id="refreshBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        重新整理
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div id="loading" class="state"><div class="spinner"></div>載入報到資料中…</div>
+    <div id="error" class="state" style="display:none;"></div>
+    <div id="content" style="display:none;">
+
+      <div class="kpis">
+        <div class="kpi"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="lab">報名人數</div><div><span class="num" id="kReg">0</span><span class="unit">人</span></div></div>
+        <div class="kpi"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></div>
+          <div class="lab">已報到</div><div><span class="num" id="kIn">0</span><span class="unit">人</span></div></div>
+        <div class="kpi rate"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div>
+          <div class="lab">報到率</div><div><span class="num" id="kRate">0</span><span class="unit">%</span></div></div>
+        <div class="kpi"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+          <div class="lab">未報到</div><div><span class="num" id="kPending">0</span><span class="unit">人</span></div></div>
+      </div>
+
+      <div class="charts">
+        <div class="panel">
+          <h2><span class="bar"></span>報到狀況</h2>
+          <div class="donut-wrap">
+            <svg class="donut" id="statusDonut" width="170" height="170" viewBox="0 0 42 42"></svg>
+            <div class="legend" id="statusLegend"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h2><span class="bar"></span>各院區報到分布</h2>
+          <div class="donut-wrap">
+            <svg class="donut" id="campusDonut" width="170" height="170" viewBox="0 0 42 42"></svg>
+            <div class="legend" id="campusLegend"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h2><span class="bar"></span>報到時段分布</h2>
+          <div class="trend" id="trend"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2><span class="bar"></span>報到名單</h2>
+        <div class="tbl-tabs">
+          <button class="tbl-tab active" data-view="in" id="tabIn">已報到</button>
+          <button class="tbl-tab" data-view="pending" id="tabPending">未報到</button>
+        </div>
+        <div class="tbl-tools">
+          <input type="text" class="search" id="search" placeholder="搜尋姓名 / 單位 / 院區 / 職稱 / 人事號…">
+          <span class="updated" style="color:var(--muted);align-self:center;" id="tblCount"></span>
+        </div>
+        <div class="tbl-scroll">
+          <table>
+            <thead id="thead"></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer>奇美醫療財團法人奇美醫院　教學部</footer>
+
+<script>
+  // 直接讀取 Google Sheets GViz 端點（由 Google Docs 高可用服務提供）
+  // 需求：試算表需設為「知道連結的任何人 → 檢視者」。
+  const SHEET_ID = '1oghXn_uNIrESKl-i7WZu8XyAyskizCGgtLnzCVdQNTw';
+  const REG_SHEET = '工作坊報名資料';
+  const CHECKIN_SHEET = '工作坊報到資料';
+  const gvizUrl = name => 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+    '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(name);
+
+  const REG_MAP = {'報名時間':'time','院區':'campus','單位':'dept','姓名':'name','人事號':'empno','職稱':'title','連絡電話/分機':'phone','E-mail':'email'};
+  const REG_FIXED = ['time','campus','dept','name','empno','title','phone','email'];
+  const CHK_MAP = {'報到時間':'time','人事號':'empno','院區':'campus','單位':'dept','姓名':'name','職稱':'title'};
+  const CHK_FIXED = ['time','empno','campus','dept','name','title'];
+
+  const PALETTE = ['#f5c400','#1f9bc9','#e0a800','#7fd4ef','#1f87b0','#f0c84d','#2f9cc4'];
+
+  let regRecords = [], chkRecords = [], pendingRecords = [], tableView = 'in';
+
+  const $ = id => document.getElementById(id);
+  const loading = $('loading'), errorBox = $('error'), content = $('content');
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+  function fmtTime(t){
+    if(!t) return '—';
+    const d = new Date(t);
+    if(isNaN(d)) return String(t);
+    const p = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  function hourKey(t){
+    const d = new Date(t);
+    if(isNaN(d)){ const m = String(t).match(/(\d{1,2}):(\d{2})/); return m ? (m[1].padStart(2,'0')+':00') : '其他'; }
+    return String(d.getHours()).padStart(2,'0') + ':00';
+  }
+  function groupCount(arr, key){
+    const m = {};
+    arr.forEach(r => { const k = String(r[key]==null?'':r[key]).trim() || '未填'; m[k]=(m[k]||0)+1; });
+    return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+  }
+
+  function cellVal(cell){
+    if(!cell) return '';
+    if(cell.f != null && cell.f !== '') return String(cell.f);
+    var v = cell.v;
+    if(v == null) return '';
+    if(v instanceof Date) return v.toISOString();
+    return String(v);
+  }
+  function parseGviz(txt, labelMap, fixed){
+    var start = txt.indexOf('('), end = txt.lastIndexOf(')');
+    if(start < 0 || end < 0) throw new Error('伺服器忙線');
+    var json = JSON.parse(txt.substring(start+1, end));
+    if(!json.table || !json.table.cols) throw new Error('資料格式錯誤');
+    var cols = json.table.cols.map(c => (c && c.label ? c.label : '').trim());
+    var keys = cols.map((lab,i) => labelMap[lab] || fixed[i] || ('col'+i));
+    var out = [];
+    (json.table.rows || []).forEach(function(row){
+      if(!row || !row.c) return;
+      var rec = {};
+      row.c.forEach((cell,i) => { rec[keys[i]] = cellVal(cell); });
+      var nonEmpty = Object.keys(rec).some(k => String(rec[k]).trim() !== '');
+      if(!nonEmpty) return;
+      if(String(rec.time).trim() === '報名時間' || String(rec.time).trim() === '報到時間') return;
+      out.push(rec);
+    });
+    return out;
+  }
+
+  function fetchSheet(name, labelMap, fixed, timeoutMs){
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    return fetch(gvizUrl(name) + '&t=' + Date.now(), { signal: ctrl.signal, redirect:'follow' })
+      .then(r => r.text())
+      .then(txt => parseGviz(txt, labelMap, fixed))
+      .finally(() => clearTimeout(timer));
+  }
+
+  function load(attempt){
+    attempt = attempt || 1;
+    const MAX_ATTEMPTS = 6, TIMEOUT_MS = 15000;
+    loading.style.display='block'; errorBox.style.display='none';
+    if(attempt === 1) content.style.display='none';
+    loading.innerHTML = '<div class="spinner"></div>載入報到資料中…' +
+      (attempt > 1 ? '（重試 ' + (attempt-1) + '/' + (MAX_ATTEMPTS-1) + '）' : '');
+
+    Promise.all([
+      fetchSheet(REG_SHEET, REG_MAP, REG_FIXED, TIMEOUT_MS),
+      fetchSheet(CHECKIN_SHEET, CHK_MAP, CHK_FIXED, TIMEOUT_MS)
+    ])
+    .then(([reg, chk]) => {
+      regRecords = reg || [];
+      chkRecords = chk || [];
+      // 未報到 = 報名者中人事號不在報到清單者
+      const inSet = new Set(chkRecords.map(r => String(r.empno).trim()));
+      pendingRecords = regRecords.filter(r => !inSet.has(String(r.empno).trim()));
+      render();
+      loading.style.display='none'; content.style.display='block';
+      $('updated').textContent = '更新於 ' + fmtTime(new Date());
+    })
+    .catch(err => {
+      if(attempt < MAX_ATTEMPTS){ setTimeout(() => load(attempt+1), attempt*1000); return; }
+      loading.style.display='none';
+      errorBox.style.display='block';
+      errorBox.innerHTML = '⚠️ 無法載入報到資料：' + (err && err.message ? err.message : '連線逾時') +
+        '<br><br>可能為網路或 Google 伺服器忙線，請按「重新整理」再試一次。' +
+        '<br>若持續發生，請確認試算表已設為「知道連結的任何人 → 檢視者」，且「工作坊報到資料」分頁已存在。';
+    });
+  }
+
+  function render(){
+    const reg = regRecords.length, inCnt = chkRecords.length;
+    const rate = reg ? Math.round(inCnt/reg*100) : 0;
+    $('kReg').textContent = reg;
+    $('kIn').textContent = inCnt;
+    $('kRate').textContent = rate;
+    $('kPending').textContent = Math.max(0, reg - inCnt);
+
+    renderStatusDonut(inCnt, Math.max(0, reg - inCnt));
+    renderDonut('campusDonut','campusLegend', groupCount(chkRecords,'campus'), inCnt);
+    renderTrend();
+    renderTable();
+  }
+
+  function renderStatusDonut(inCnt, pend){
+    const total = inCnt + pend;
+    const data = [['已報到', inCnt], ['未報到', pend]];
+    const cols = ['#1e9e6a', '#e0a800'];
+    const svg = $('statusDonut'), legend = $('statusLegend');
+    svg.innerHTML=''; legend.innerHTML='';
+    if(total===0){ legend.innerHTML='<span class="empty">尚無資料</span>'; return; }
+    const cx=21,cy=21,r=15.915,C=2*Math.PI*r; let offset=0;
+    svg.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#eef4f4" stroke-width="6"></circle>`;
+    data.forEach(([k,v],i)=>{
+      const frac=v/total,len=frac*C,col=cols[i];
+      svg.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="6"
+        stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"></circle>`;
+      offset += len;
+      legend.innerHTML += `<div class="li"><span class="dot" style="background:${col}"></span>
+        <span class="lk">${k}</span><span class="lv">${v} 人 (${Math.round(frac*100)}%)</span></div>`;
+    });
+    svg.innerHTML += `<text x="21" y="20" text-anchor="middle" font-size="6" font-weight="800" fill="#1e9e6a">${Math.round(inCnt/total*100)}%</text>
+      <text x="21" y="26" text-anchor="middle" font-size="3" fill="#5b7a85">報到率</text>`;
+  }
+
+  function renderDonut(svgId, legendId, data, total){
+    const svg = $(svgId), legend = $(legendId);
+    svg.innerHTML=''; legend.innerHTML='';
+    if(total===0){ legend.innerHTML='<span class="empty">尚無報到資料</span>'; return; }
+    const cx=21,cy=21,r=15.915,C=2*Math.PI*r; let offset=0;
+    svg.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#eef4f4" stroke-width="6"></circle>`;
+    data.forEach(([k,v],i)=>{
+      const frac=v/total,len=frac*C,col=PALETTE[i%PALETTE.length];
+      svg.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="6"
+        stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"></circle>`;
+      offset += len;
+      legend.innerHTML += `<div class="li"><span class="dot" style="background:${col}"></span>
+        <span class="lk">${k}</span><span class="lv">${v} 人 (${Math.round(frac*100)}%)</span></div>`;
+    });
+    svg.innerHTML += `<text x="21" y="20" text-anchor="middle" font-size="6" font-weight="800" fill="#1f87b0">${total}</text>
+      <text x="21" y="26" text-anchor="middle" font-size="3" fill="#5b7a85">已報到</text>`;
+  }
+
+  function renderTrend(){
+    const box=$('trend'); box.innerHTML='';
+    if(chkRecords.length===0){ box.innerHTML='<span class="empty">尚無報到資料</span>'; return; }
+    const m={};
+    chkRecords.forEach(r=>{ const k=hourKey(r.time); m[k]=(m[k]||0)+1; });
+    const entries=Object.entries(m).sort((a,b)=>a[0]<b[0]?-1:1);
+    const max=Math.max(...entries.map(e=>e[1]));
+    entries.forEach(([k,v])=>{
+      const col=document.createElement('div'); col.className='tcol';
+      col.innerHTML=`<div class="tb"><span>${v}</span></div><div class="tl">${k}</div>`;
+      box.appendChild(col);
+      requestAnimationFrame(()=>{ col.querySelector('.tb').style.height=(v/max*100)+'%'; });
+    });
+  }
+
+  function currentRows(){
+    const q = $('search').value.trim().toLowerCase();
+    const src = tableView === 'in' ? chkRecords : pendingRecords;
+    if(!q) return src;
+    return src.filter(r => [r.name,r.dept,r.campus,r.title,r.empno].some(v=>String(v||'').toLowerCase().includes(q)));
+  }
+
+  function renderTable(){
+    const thead=$('thead'), tb=$('tbody');
+    if(tableView === 'in'){
+      thead.innerHTML = '<tr><th>#</th><th>報到時間</th><th>院區</th><th>單位</th><th>姓名</th><th>職稱</th></tr>';
+    } else {
+      thead.innerHTML = '<tr><th>#</th><th>院區</th><th>單位</th><th>姓名</th><th>職稱</th><th>人事號</th></tr>';
+    }
+    const rows = currentRows();
+    tb.innerHTML='';
+    if(rows.length===0){
+      tb.innerHTML = '<tr><td colspan="6" class="empty">'+(tableView==='in'?'尚無報到資料':'全部報名者皆已報到 🎉')+'</td></tr>';
+    }
+    rows.forEach((r,i)=>{
+      const tr=document.createElement('tr');
+      if(tableView === 'in'){
+        tr.innerHTML=`<td>${i+1}</td><td>${fmtTime(r.time)}</td><td><span class="pill">${esc(r.campus)}</span></td>
+          <td>${esc(r.dept)}</td><td>${esc(r.name)}</td><td>${esc(r.title)}</td>`;
+      } else {
+        tr.innerHTML=`<td>${i+1}</td><td><span class="pill">${esc(r.campus)}</span></td><td>${esc(r.dept)}</td>
+          <td>${esc(r.name)}</td><td>${esc(r.title)}</td><td>${esc(r.empno)}</td>`;
+      }
+      tb.appendChild(tr);
+    });
+    $('tblCount').textContent = `共 ${rows.length} 筆`;
+  }
+
+  document.querySelectorAll('.tbl-tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.tbl-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      tableView = tab.getAttribute('data-view');
+      renderTable();
+    });
+  });
+  $('search').addEventListener('input', renderTable);
+  $('refreshBtn').addEventListener('click', ()=>load());
+  load();
+</script>
+</body>
+</html>
