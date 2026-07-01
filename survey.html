@@ -49,6 +49,9 @@
   .q textarea{width:100%;font:inherit;padding:12px 14px;border:1px solid var(--line);border-radius:10px;
     resize:vertical;min-height:90px;color:var(--ink);}
   .q textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(31,155,201,.15);}
+  .q input[type="text"]{width:100%;font:inherit;font-size:1.2rem;font-weight:700;letter-spacing:.04em;
+    padding:13px 15px;border:1.5px solid var(--line);border-radius:10px;color:var(--ink);background:#fbfdff;}
+  .q input[type="text"]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(31,155,201,.15);}
 
   .actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:6px;}
   .btn{cursor:pointer;font-weight:800;font-size:1.05rem;border:none;border-radius:12px;
@@ -83,7 +86,7 @@
 <main>
   <div class="wrap">
     <div class="intro" id="introBox">
-      感謝您參與本次工作坊！您的回饋將協助我們持續精進課程品質。本問卷為匿名填答，敬請就下列項目勾選您的同意程度。
+      感謝您參與本次工作坊！您的回饋將協助我們持續精進課程品質。敬請填寫人事號並就下列項目勾選您的同意程度。
       <div class="scale-hint">
         <span>5 非常同意</span><span>4 同意</span><span>3 普通</span><span>2 不同意</span><span>1 非常不同意</span>
       </div>
@@ -121,6 +124,14 @@
   const SCALE = [ [5,'非常同意'],[4,'同意'],[3,'普通'],[2,'不同意'],[1,'非常不同意'] ];
 
   const form = document.getElementById('surveyForm');
+
+  // 人事號（用以帶出院區/單位/姓名/職稱）
+  const idBox = document.createElement('div');
+  idBox.className = 'q';
+  idBox.innerHTML = `<p class="qt"><span class="n">#</span>人事號<span class="req">＊</span></p>
+    <input type="text" id="empno" inputmode="numeric" autocomplete="off" placeholder="請輸入人事號">`;
+  form.appendChild(idBox);
+
   QUESTIONS.forEach((q, idx) => {
     const n = idx + 1;
     const div = document.createElement('div');
@@ -155,10 +166,19 @@
 
   form.addEventListener('submit', function(e){
     e.preventDefault();
+    const empno = document.getElementById('empno').value.trim();
+    if(!empno){
+      errTip.textContent = '請先填寫人事號。';
+      errTip.classList.add('show');
+      idBox.scrollIntoView({behavior:'smooth', block:'center'});
+      document.getElementById('empno').focus();
+      return;
+    }
     const answers = {};
     for(let n=1; n<=QUESTIONS.length; n++){
       const sel = form.querySelector(`input[name="q${n}"]:checked`);
       if(!sel){
+        errTip.textContent = '尚有必填題目未作答，請確認後再送出。';
         errTip.classList.add('show');
         form.querySelector(`[name="q${n}"]`).closest('.q').scrollIntoView({behavior:'smooth', block:'center'});
         return;
@@ -175,7 +195,7 @@
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'survey', answers: answers, comment: comment })
+      body: JSON.stringify({ action: 'survey', empno: empno, answers: answers, comment: comment })
     })
     .then(() => {
       document.getElementById('introBox').style.display = 'none';
