@@ -185,8 +185,21 @@
 <footer>奇美醫療財團法人奇美醫院　教學部</footer>
 
 <script>
-  // 與 index.html 相同的 Apps Script Web App 網址（doGet 回傳報名資料）
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_Nq9__BMhF1szoVIPsw3bJ1p4HfZEh0dkrL292-Vnto1FORFNX2Xw5zUjh9j36qD2/exec';
+  // 直接讀取 Google Sheets 的 GViz 端點（由 Google Docs 高可用服務提供，較 Apps Script 穩定快速）
+  // 需求：試算表需設為「知道連結的任何人 → 檢視者」，或已發布到網路。
+  const SHEET_ID = '1oghXn_uNIrESKl-i7WZu8XyAyskizCGgtLnzCVdQNTw';
+  const SHEET_NAME = '工作坊報名資料';
+  const GVIZ_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+    '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(SHEET_NAME);
+
+  // 欄位標題 → 內部鍵（依標題對應，容忍欄位順序調整）
+  const LABEL_MAP = {
+    '報名時間':'time', '院區':'campus', '單位':'dept', '姓名':'name',
+    '人事號':'empno', '職稱':'title', '連絡電話/分機':'phone', 'E-mail':'email'
+  };
+  // 未偵測到標題時的固定欄位順序備援
+  const FIXED_ORDER = ['time','campus','dept','name','empno','title','phone','email'];
+
   const PALETTE = ['#f5c400','#1f9bc9','#e0a800','#7fd4ef','#1f87b0','#f0c84d','#2f9cc4'];
 
   let allRecords = [];
@@ -213,24 +226,53 @@
     return Object.entries(m).sort((a,b)=>b[1]-a[1]);
   }
 
-  // 單次抓取，附帶逾時中止（Apps Script 偶有冷啟動延遲）
+  // 將 GViz 儲存格值轉為可用字串（處理日期物件與 Date(...) 字串）
+  function cellVal(cell){
+    if(!cell) return '';
+    if(cell.f != null && cell.f !== '') return String(cell.f); // 優先用試算表顯示值
+    var v = cell.v;
+    if(v == null) return '';
+    if(v instanceof Date) return v.toISOString();
+    return String(v);
+  }
+
+  // 解析 GViz 回應為報名資料陣列
+  function parseGviz(txt){
+    var start = txt.indexOf('(');
+    var end = txt.lastIndexOf(')');
+    if(start < 0 || end < 0) throw new Error('伺服器忙線');
+    var json = JSON.parse(txt.substring(start + 1, end));
+    if(!json.table || !json.table.cols) throw new Error('資料格式錯誤');
+    var cols = json.table.cols.map(function(c){ return (c && c.label ? c.label : '').trim(); });
+    // 建立欄位索引 → 內部鍵：優先用標題對應，否則用固定順序
+    var keys = cols.map(function(lab, i){
+      return LABEL_MAP[lab] || FIXED_ORDER[i] || ('col' + i);
+    });
+    var records = [];
+    (json.table.rows || []).forEach(function(row){
+      if(!row || !row.c) return;
+      var rec = {};
+      row.c.forEach(function(cell, i){ rec[keys[i]] = cellVal(cell); });
+      // 略過空列與誤判成資料列的標題列
+      var nonEmpty = Object.keys(rec).some(function(k){ return String(rec[k]).trim() !== ''; });
+      if(!nonEmpty) return;
+      if(String(rec.time).trim() === '報名時間') return;
+      records.push(rec);
+    });
+    return records;
+  }
+
+  // 單次抓取，附帶逾時中止
   function fetchOnce(timeoutMs){
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-    return fetch(SCRIPT_URL + '?t=' + Date.now(), { signal: ctrl.signal, redirect: 'follow' })
+    return fetch(GVIZ_URL + '&t=' + Date.now(), { signal: ctrl.signal, redirect: 'follow' })
       .then(r => r.text())
-      .then(txt => {
-        // Google 偶爾回傳 HTML 錯誤/登入頁，JSON.parse 會失敗 → 視為可重試的暫時性錯誤
-        const s = txt.trim();
-        if(s.charAt(0) !== '{' && s.charAt(0) !== '['){
-          throw new Error('伺服器忙線');
-        }
-        return JSON.parse(s);
-      })
+      .then(txt => parseGviz(txt))
       .finally(() => clearTimeout(timer));
   }
 
-  // 失敗或逾時自動重試，避免偶發的網路 / 冷啟動造成「Failed to fetch」
+  // 失敗或逾時自動重試，避免偶發的網路抖動造成「Failed to fetch」
   function load(attempt){
     attempt = attempt || 1;
     const MAX_ATTEMPTS = 6;
@@ -241,9 +283,8 @@
       (attempt > 1 ? '（重試 ' + (attempt-1) + '/' + (MAX_ATTEMPTS-1) + '）' : '');
 
     fetchOnce(TIMEOUT_MS)
-      .then(d => {
-        if(d.result !== 'success') throw new Error(d.message || '資料格式錯誤');
-        allRecords = d.records || [];
+      .then(records => {
+        allRecords = records || [];
         render();
         loading.style.display='none'; content.style.display='block';
         $('updated').textContent = '更新於 ' + fmtTime(new Date());
@@ -258,7 +299,7 @@
         errorBox.style.display='block';
         errorBox.innerHTML = '⚠️ 無法載入報名資料：' + (err && err.message ? err.message : '連線逾時') +
           '<br><br>可能為網路或 Google 伺服器忙線，請按「重新整理」再試一次。' +
-          '<br>若持續發生，請確認 Apps Script 已部署且存取權限為「所有人」。';
+          '<br>若持續發生，請確認試算表已設為「知道連結的任何人 → 檢視者」。';
       });
   }
 

@@ -6,7 +6,8 @@
 
 | 檔案 | 說明 |
 |------|------|
-| `index.html` | 響應式報名網頁（主視覺、簡介、活動資訊、議程、線上報名表單） |
+| `index.html` | 響應式報名網頁（主視覺、活動資訊、議程、線上報名表單） |
+| `dashboard.html` | 報名現況儀表板（直接讀取 Google Sheets GViz 端點） |
 | `apps-script/Code.gs` | Google Apps Script 後端，將報名資料寫入 Google Sheets |
 
 ## 串接 Google Sheets 報名（重要）
@@ -43,3 +44,13 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/XXXXX.../exec';
 完成後，網頁表單送出的報名資料即會即時寫入 Google Sheets。
 
 > 註：表單以 `mode: 'no-cors'` 送出，瀏覽器無法讀取回應內容，因此網頁在送出完成後即顯示「報名成功」。實際寫入結果請至試算表確認。
+
+## 報名現況儀表板（dashboard.html）
+
+儀表板**不經 Apps Script**，直接讀取 Google Sheets 的 GViz 端點
+（`.../gviz/tq?tqx=out:json&sheet=工作坊報名資料`），由 Google Docs 高可用服務提供，較即時呼叫 Apps Script 穩定快速。
+
+**設定（重要）**：需將試算表的共用權限設為 **「知道連結的任何人 → 檢視者 (Anyone with the link → Viewer)」**，儀表板才能讀取資料。
+
+- 資料讀取為唯讀；寫入（報名）仍透過 Apps Script。
+- 若日後調整欄位順序，儀表板會依**標題名稱**自動對應，無需改程式。
