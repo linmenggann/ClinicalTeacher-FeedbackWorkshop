@@ -79,21 +79,6 @@
   .closed h2{margin:0 0 8px;color:var(--teal-dark);}
   .closed p{margin:0;color:var(--muted);}
 
-  .recent{width:100%;max-width:560px;margin-top:24px;background:rgba(255,255,255,.55);
-    border:1px solid rgba(20,60,80,.1);border-radius:16px;padding:16px 18px;display:none;}
-  body.checkout .recent{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.35);}
-  .recent.show{display:block;}
-  .recent h4{margin:0 0 10px;font-size:.92rem;font-weight:700;}
-  body:not(.checkout) .recent h4{color:#1d4a59;} body.checkout .recent h4{color:#fff;}
-  .recent ul{list-style:none;margin:0;padding:0;}
-  .recent li{display:flex;justify-content:space-between;gap:10px;font-size:.9rem;padding:6px 0;
-    border-bottom:1px dashed rgba(20,60,80,.15);}
-  body.checkout .recent li{border-color:rgba(255,255,255,.3);color:#fff;}
-  .recent li:last-child{border-bottom:none;}
-  .recent li .nm{font-weight:700;} body:not(.checkout) .recent li .nm{color:#143a47;}
-  .recent li .tm{color:var(--muted);font-variant-numeric:tabular-nums;}
-  body.checkout .recent li .tm{color:rgba(255,255,255,.85);}
-
   .foot{margin-top:26px;font-size:.82rem;text-align:center;opacity:.85;}
   body:not(.checkout) .foot{color:#1d4a59;} body.checkout .foot{color:rgba(255,255,255,.9);}
 </style>
@@ -145,11 +130,6 @@
     </a>
   </div>
 
-  <div class="recent" id="recent">
-    <h4 id="recentTitle">本裝置最近紀錄</h4>
-    <ul id="recentList"></ul>
-  </div>
-
   <div class="foot">如遇問題請洽現場工作人員 · 教學部 06-281-2811 分機 57439</div>
 
 <script>
@@ -176,7 +156,6 @@
 
   const card = $('card'), form = $('mainForm'), empnoEl = $('empno'), submitBtn = $('submitBtn');
   const result = $('result'), rIcon = $('rIcon'), rTitle = $('rTitle'), rMsg = $('rMsg'), rMeta = $('rMeta');
-  const recent = $('recent'), recentList = $('recentList');
 
   // 依模式設定畫面
   if(MODE === 'closed'){
@@ -192,7 +171,6 @@
     $('cardLead').textContent = isIn ? '請輸入您的「人事號」完成報到' : '請輸入您的「人事號」完成簽退';
     submitBtn.textContent = isIn ? '報到' : '簽退';
     submitBtn.className = 'btn' + (isIn ? '' : ' green');
-    $('recentTitle').textContent = isIn ? '本裝置最近報到紀錄' : '本裝置最近簽退紀錄';
     if(!isIn) $('surveyBox').classList.add('show'); // 簽退模式顯示問卷連結
     empnoEl.focus();
   }
@@ -202,16 +180,6 @@
     rIcon.textContent = icon; rTitle.textContent = title;
     rMsg.innerHTML = msg || ''; rMeta.innerHTML = meta || '';
   }
-  function addRecent(name, campus, time){
-    const li = document.createElement('li');
-    const t = (time || '').split(' ')[1] || time || '';
-    li.innerHTML = '<span class="nm">' + esc(name) + '　<span style="font-weight:500;opacity:.8;">' +
-      esc(campus || '') + '</span></span><span class="tm">' + esc(t) + '</span>';
-    recentList.insertBefore(li, recentList.firstChild);
-    while(recentList.children.length > 8) recentList.removeChild(recentList.lastChild);
-    recent.classList.add('show');
-  }
-
   if(MODE !== 'closed'){
     form.addEventListener('submit', function(e){
       e.preventDefault();
@@ -235,7 +203,6 @@
           showResult('ok', '✅', actLabel + '成功',
             '<strong style="font-size:1.15rem;">' + esc(d.name) + '</strong> 您好，' + verb,
             esc(d.campus || '') + (d.dept ? '　' + esc(d.dept) : ''));
-          addRecent(d.name, d.campus, d.time);
           empnoEl.value = ''; empnoEl.focus();
         } else if(d.result === 'already'){
           const past = isIn ? '已完成報到' : '已完成簽退';
