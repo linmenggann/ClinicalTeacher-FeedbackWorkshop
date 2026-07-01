@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>課程滿意度調查｜臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊</title>
+<style>
+  :root{
+    --bg:#f2f8fa;--ink:#143a47;--muted:#5b7a85;
+    --teal:#45b6dc;--teal-dark:#1f87b0;--teal-soft:#e4f4fb;
+    --accent:#1f9bc9;--accent-dark:#1a82ab;--gold:#f5c400;
+    --card:#fff;--line:#d8e7ec;--shadow:0 10px 30px rgba(20,90,110,.10);--radius:16px;
+    --err:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",-apple-system,"Segoe UI",sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.7;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px;}
+
+  header{color:#143a47;padding:38px 0 30px;
+    background:linear-gradient(135deg,#ffe066 0%,#f5c400 55%,#ecb200 100%);}
+  header .tag{display:inline-block;background:rgba(255,255,255,.55);border:1px solid rgba(20,60,80,.15);
+    padding:5px 15px;border-radius:999px;font-size:.82rem;font-weight:600;margin-bottom:12px;}
+  header h1{margin:0;font-size:clamp(1.2rem,3.2vw,1.6rem);font-weight:800;line-height:1.35;}
+  header p{margin:8px 0 0;color:#1d4a59;font-size:.92rem;}
+
+  main{padding:26px 0 60px;}
+  .intro{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px 22px;box-shadow:var(--shadow);margin-bottom:20px;color:#33505b;font-size:.95rem;}
+  .scale-hint{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;font-size:.82rem;color:var(--muted);}
+  .scale-hint span{background:var(--teal-soft);color:var(--teal-dark);border-radius:8px;padding:3px 10px;font-weight:600;}
+
+  .q{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:20px 22px;box-shadow:0 4px 14px rgba(20,80,90,.05);margin-bottom:16px;}
+  .q .qt{font-weight:700;margin:0 0 14px;font-size:1.02rem;}
+  .q .qt .n{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;
+    background:var(--accent);color:#fff;border-radius:8px;font-size:.85rem;margin-right:9px;font-weight:800;}
+  .q .qt .req{color:var(--err);margin-left:4px;}
+  .opts{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+  .opt{position:relative;}
+  .opt input{position:absolute;opacity:0;inset:0;cursor:pointer;}
+  .opt label{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;
+    border:1.5px solid var(--line);border-radius:10px;padding:10px 4px;text-align:center;transition:.12s;}
+  .opt .v{font-weight:800;font-size:1.05rem;color:var(--teal-dark);}
+  .opt .t{font-size:.72rem;color:var(--muted);line-height:1.25;}
+  .opt input:checked + label{border-color:var(--accent);background:var(--teal-soft);box-shadow:0 0 0 3px rgba(31,155,201,.15);}
+  .opt input:focus-visible + label{border-color:var(--accent);}
+
+  .q textarea{width:100%;font:inherit;padding:12px 14px;border:1px solid var(--line);border-radius:10px;
+    resize:vertical;min-height:90px;color:var(--ink);}
+  .q textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(31,155,201,.15);}
+
+  .actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:6px;}
+  .btn{cursor:pointer;font-weight:800;font-size:1.05rem;border:none;border-radius:12px;
+    padding:14px 30px;background:var(--accent);color:#fff;box-shadow:0 8px 20px rgba(31,135,176,.35);
+    transition:transform .12s,background .15s;}
+  .btn:hover{background:var(--accent-dark);}
+  .btn:disabled{opacity:.6;cursor:not-allowed;}
+  .err-tip{color:var(--err);font-size:.9rem;font-weight:600;display:none;}
+  .err-tip.show{display:block;}
+
+  .done{display:none;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:44px 26px;text-align:center;}
+  .done.show{display:block;}
+  .done .ic{font-size:3rem;margin-bottom:10px;}
+  .done h2{margin:0 0 8px;color:var(--teal-dark);}
+  .done p{margin:0;color:var(--muted);}
+
+  footer{color:var(--muted);font-size:.82rem;text-align:center;padding:16px 0 40px;}
+  @media (max-width:480px){ .opt .t{display:none;} .opts{gap:6px;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="tag">奇美醫療財團法人奇美醫院 · 教學部</span>
+    <h1>課程滿意度調查</h1>
+    <p>臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊　·　115年7月4日（六）</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="intro" id="introBox">
+      感謝您參與本次工作坊！您的回饋將協助我們持續精進課程品質。本問卷為匿名填答，敬請就下列項目勾選您的同意程度。
+      <div class="scale-hint">
+        <span>5 非常同意</span><span>4 同意</span><span>3 普通</span><span>2 不同意</span><span>1 非常不同意</span>
+      </div>
+    </div>
+
+    <form id="surveyForm" novalidate></form>
+
+    <div class="done" id="doneBox">
+      <div class="ic">🎉</div>
+      <h2>問卷已送出</h2>
+      <p>感謝您的寶貴意見，祝您有美好的一天！</p>
+    </div>
+  </div>
+</main>
+
+<footer>教學部 06-281-2811 分機 57439</footer>
+
+<script>
+  // 與報名/報到相同的 Apps Script Web App 網址（doPost 以 action:'survey' 分流）
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_Nq9__BMhF1szoVIPsw3bJ1p4HfZEh0dkrL292-Vnto1FORFNX2Xw5zUjh9j36qD2/exec';
+
+  // 依報名網頁課程內容設計的 10 題滿意度問卷
+  const QUESTIONS = [
+    '整體而言，我對本次工作坊的滿意度。',
+    '課程主題「教學溝通的心理安全感與回饋技巧」對我的臨床教學有幫助。',
+    '「教學背後的基本功」單元內容實用且切合我的需求。',
+    '「教學溝通困境交流」單元有助於解決我在教學中實際遇到的溝通問題。',
+    '講師（王興豪 芯寬欣心理治療所副院長兼臨床心理師）的講授清楚、易於理解。',
+    '講師能有效引導學員討論與互動。',
+    '課程有助於我提升營造「心理安全」學習環境的能力。',
+    '課程有助於我運用「支持式回饋」與同理引導的溝通技巧。',
+    '本次課程的時間安排與流程規劃合宜。',
+    '我願意推薦其他臨床教師參加類似的工作坊。'
+  ];
+  const SCALE = [ [5,'非常同意'],[4,'同意'],[3,'普通'],[2,'不同意'],[1,'非常不同意'] ];
+
+  const form = document.getElementById('surveyForm');
+  QUESTIONS.forEach((q, idx) => {
+    const n = idx + 1;
+    const div = document.createElement('div');
+    div.className = 'q';
+    let opts = '<div class="opts">';
+    SCALE.forEach(([v,t]) => {
+      opts += `<div class="opt">
+        <input type="radio" id="q${n}_${v}" name="q${n}" value="${v}" required>
+        <label for="q${n}_${v}"><span class="v">${v}</span><span class="t">${t}</span></label>
+      </div>`;
+    });
+    opts += '</div>';
+    div.innerHTML = `<p class="qt"><span class="n">${n}</span>${q}<span class="req">＊</span></p>${opts}`;
+    form.appendChild(div);
+  });
+
+  // 開放式意見
+  const cbox = document.createElement('div');
+  cbox.className = 'q';
+  cbox.innerHTML = `<p class="qt"><span class="n">✎</span>其他建議或回饋（選填）</p>
+    <textarea id="comment" placeholder="歡迎留下您對課程的建議、印象最深刻的收穫，或希望未來開設的主題…"></textarea>`;
+  form.appendChild(cbox);
+
+  const actions = document.createElement('div');
+  actions.className = 'actions';
+  actions.innerHTML = `<button type="submit" class="btn" id="submitBtn">送出問卷</button>
+    <span class="err-tip" id="errTip">尚有必填題目未作答，請確認後再送出。</span>`;
+  form.appendChild(actions);
+
+  const submitBtn = document.getElementById('submitBtn');
+  const errTip = document.getElementById('errTip');
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const answers = {};
+    for(let n=1; n<=QUESTIONS.length; n++){
+      const sel = form.querySelector(`input[name="q${n}"]:checked`);
+      if(!sel){
+        errTip.classList.add('show');
+        form.querySelector(`[name="q${n}"]`).closest('.q').scrollIntoView({behavior:'smooth', block:'center'});
+        return;
+      }
+      answers['q'+n] = sel.value;
+    }
+    errTip.classList.remove('show');
+    const comment = document.getElementById('comment').value.trim();
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '送出中…';
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'survey', answers: answers, comment: comment })
+    })
+    .then(() => {
+      document.getElementById('introBox').style.display = 'none';
+      form.style.display = 'none';
+      document.getElementById('doneBox').classList.add('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    })
+    .catch(() => {
+      alert('送出失敗，請稍後再試，或洽現場工作人員。');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '送出問卷';
+    });
+  });
+</script>
+</body>
+</html>

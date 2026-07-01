@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>現場報到｜臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊</title>
+<title>報到／簽退｜臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊</title>
 <style>
   :root{
     --bg:#f2f8fa;--ink:#143a47;--muted:#5b7a85;
@@ -17,25 +17,35 @@
     color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;
     background:linear-gradient(135deg,#ffe066 0%,#f5c400 55%,#ecb200 100%);
     display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:24px 16px 40px;}
-  .head{width:100%;max-width:560px;text-align:center;color:#143a47;margin:14px 0 22px;}
+  /* 簽退模式改用藍色背景以清楚區隔 */
+  body.checkout{background:linear-gradient(135deg,#7fd4ef 0%,#3eaeda 55%,#1f87b0 100%);}
+  .head{width:100%;max-width:560px;text-align:center;margin:14px 0 22px;}
   .head .tag{display:inline-block;background:rgba(255,255,255,.55);border:1px solid rgba(20,60,80,.15);
     padding:5px 15px;border-radius:999px;font-size:.82rem;font-weight:600;margin-bottom:14px;}
   .head h1{margin:0;font-size:clamp(1.25rem,3.6vw,1.7rem);font-weight:800;line-height:1.35;}
-  .head p{margin:8px 0 0;color:#1d4a59;font-size:.95rem;}
+  .head p{margin:8px 0 0;font-size:.95rem;}
+  body:not(.checkout) .head, body:not(.checkout) .head p{color:#1d4a59;}
+  body.checkout .head{color:#fff;} body.checkout .head p{color:rgba(255,255,255,.92);}
+  body.checkout .head .tag{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.4);color:#fff;}
 
-  .card{width:100%;max-width:560px;background:var(--card);border-radius:22px;box-shadow:var(--shadow);
-    padding:34px 28px;}
+  .card{width:100%;max-width:560px;background:var(--card);border-radius:22px;box-shadow:var(--shadow);padding:34px 28px;}
+  .mode-badge{display:inline-block;padding:6px 18px;border-radius:999px;font-weight:800;font-size:.95rem;
+    letter-spacing:.05em;margin:0 auto 14px;}
+  .mode-badge.in{background:#e7f7f0;color:#12603f;}
+  .mode-badge.out{background:var(--teal-soft);color:var(--teal-dark);}
   .card h2{margin:0 0 6px;font-size:1.35rem;font-weight:800;text-align:center;}
   .card .lead{margin:0 0 22px;text-align:center;color:var(--muted);font-size:.95rem;}
+  .center{text-align:center;}
   label{display:block;font-weight:700;margin-bottom:10px;font-size:1rem;}
   .empno-wrap{display:flex;gap:12px;flex-wrap:wrap;}
   input{flex:1;min-width:0;font:inherit;font-size:1.5rem;letter-spacing:.06em;text-align:center;
-    padding:16px 18px;border-radius:14px;border:2px solid var(--line);background:#fbfdff;color:var(--ink);
-    font-weight:700;}
+    padding:16px 18px;border-radius:14px;border:2px solid var(--line);background:#fbfdff;color:var(--ink);font-weight:700;}
   input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(31,155,201,.2);}
-  .btn{cursor:pointer;font-weight:800;font-size:1.15rem;border:none;border-radius:14px;
-    padding:16px 30px;background:var(--accent);color:#fff;transition:transform .12s,background .15s;
+  .btn{cursor:pointer;font-weight:800;font-size:1.15rem;border:none;border-radius:14px;padding:16px 30px;
+    background:var(--accent);color:#fff;transition:transform .12s,background .15s;
     box-shadow:0 8px 20px rgba(31,135,176,.35);white-space:nowrap;}
+  .btn.green{background:var(--ok);box-shadow:0 8px 20px rgba(30,158,106,.35);}
+  .btn.green:hover{background:#177e54;}
   .btn:hover{background:var(--accent-dark);}
   .btn:active{transform:translateY(1px);}
   .btn:disabled{opacity:.6;cursor:not-allowed;}
@@ -52,38 +62,62 @@
   .result.warn{background:#fff5e0;color:#8a5a00;border:1px solid #f4dfa8;}
   .result.err{background:#fdecea;color:#a5281b;border:1px solid #f4c3bd;}
 
+  /* 簽退模式的問卷連結 */
+  .survey-box{width:100%;max-width:560px;margin-top:18px;background:var(--card);border-radius:18px;
+    box-shadow:var(--shadow);padding:22px 24px;text-align:center;display:none;}
+  .survey-box.show{display:block;}
+  .survey-box h3{margin:0 0 6px;font-size:1.1rem;font-weight:800;color:var(--teal-dark);}
+  .survey-box p{margin:0 0 16px;color:var(--muted);font-size:.92rem;}
+  .survey-link{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:800;font-size:1.05rem;
+    background:var(--gold);color:#5a4500;border-radius:12px;padding:14px 26px;box-shadow:0 8px 20px rgba(245,196,0,.4);}
+  .survey-link:hover{background:var(--gold-dark);}
+
+  .closed{width:100%;max-width:560px;background:var(--card);border-radius:22px;box-shadow:var(--shadow);
+    padding:40px 28px;text-align:center;display:none;}
+  .closed.show{display:block;}
+  .closed .ic{font-size:2.6rem;margin-bottom:10px;}
+  .closed h2{margin:0 0 8px;color:var(--teal-dark);}
+  .closed p{margin:0;color:var(--muted);}
+
   .recent{width:100%;max-width:560px;margin-top:24px;background:rgba(255,255,255,.55);
     border:1px solid rgba(20,60,80,.1);border-radius:16px;padding:16px 18px;display:none;}
+  body.checkout .recent{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.35);}
   .recent.show{display:block;}
-  .recent h4{margin:0 0 10px;font-size:.92rem;color:#1d4a59;font-weight:700;}
+  .recent h4{margin:0 0 10px;font-size:.92rem;font-weight:700;}
+  body:not(.checkout) .recent h4{color:#1d4a59;} body.checkout .recent h4{color:#fff;}
   .recent ul{list-style:none;margin:0;padding:0;}
   .recent li{display:flex;justify-content:space-between;gap:10px;font-size:.9rem;padding:6px 0;
     border-bottom:1px dashed rgba(20,60,80,.15);}
+  body.checkout .recent li{border-color:rgba(255,255,255,.3);color:#fff;}
   .recent li:last-child{border-bottom:none;}
-  .recent li .nm{font-weight:700;color:#143a47;}
-  .recent li .tm{color:#5b7a85;font-variant-numeric:tabular-nums;}
+  .recent li .nm{font-weight:700;} body:not(.checkout) .recent li .nm{color:#143a47;}
+  .recent li .tm{color:var(--muted);font-variant-numeric:tabular-nums;}
+  body.checkout .recent li .tm{color:rgba(255,255,255,.85);}
 
-  .foot{margin-top:26px;color:#1d4a59;font-size:.82rem;text-align:center;opacity:.85;}
+  .foot{margin-top:26px;font-size:.82rem;text-align:center;opacity:.85;}
+  body:not(.checkout) .foot{color:#1d4a59;} body.checkout .foot{color:rgba(255,255,255,.9);}
 </style>
 </head>
 <body>
   <div class="head">
     <span class="tag">奇美醫療財團法人奇美醫院 · 教學部</span>
     <h1>臨床教學中的拋與接<br>教學溝通的心理安全感與回饋技巧工作坊</h1>
-    <p>115年7月4日（六）· 現場報到</p>
+    <p>115年7月4日（六）</p>
   </div>
 
-  <div class="card">
-    <h2>現場報到</h2>
-    <p class="lead">請輸入您的「人事號」完成報到</p>
-    <form id="checkinForm" novalidate>
+  <!-- 報到 / 簽退 卡片 -->
+  <div class="card" id="card">
+    <div class="center"><span class="mode-badge" id="modeBadge"></span></div>
+    <h2 id="cardTitle"></h2>
+    <p class="lead" id="cardLead"></p>
+    <form id="mainForm" novalidate>
       <label for="empno">人事號</label>
       <div class="empno-wrap">
         <input type="text" id="empno" name="empno" inputmode="numeric" autocomplete="off"
                placeholder="請輸入人事號" required autofocus>
-        <button type="submit" class="btn" id="submitBtn">報到</button>
+        <button type="submit" class="btn" id="submitBtn"></button>
       </div>
-      <p class="hint">輸入後按「報到」或 Enter 鍵即可</p>
+      <p class="hint">輸入後按下按鈕或 Enter 鍵即可</p>
     </form>
 
     <div class="result" id="result">
@@ -94,93 +128,133 @@
     </div>
   </div>
 
+  <!-- 非開放時段提示 -->
+  <div class="closed" id="closedBox">
+    <div class="ic">⏳</div>
+    <h2 id="closedTitle">目前非報到／簽退時段</h2>
+    <p id="closedMsg"></p>
+  </div>
+
+  <!-- 簽退模式：滿意度問卷連結 -->
+  <div class="survey-box" id="surveyBox">
+    <h3>課程滿意度調查</h3>
+    <p>感謝您的參與！離場前敬請協助填寫課程滿意度問卷（約 1 分鐘）。</p>
+    <a class="survey-link" id="surveyLink" href="survey.html" target="_blank" rel="noopener">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/></svg>
+      填寫滿意度問卷
+    </a>
+  </div>
+
   <div class="recent" id="recent">
-    <h4>本裝置最近報到紀錄</h4>
+    <h4 id="recentTitle">本裝置最近紀錄</h4>
     <ul id="recentList"></ul>
   </div>
 
   <div class="foot">如遇問題請洽現場工作人員 · 教學部 06-281-2811 分機 57439</div>
 
 <script>
-  // 與 index.html 相同的 Apps Script Web App 網址（doPost 以 action:'checkin' 分流）
+  // 與 index.html 相同的 Apps Script Web App 網址（doPost 以 action 分流）
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_Nq9__BMhF1szoVIPsw3bJ1p4HfZEh0dkrL292-Vnto1FORFNX2Xw5zUjh9j36qD2/exec';
 
-  const form = document.getElementById('checkinForm');
-  const empnoEl = document.getElementById('empno');
-  const submitBtn = document.getElementById('submitBtn');
-  const result = document.getElementById('result');
-  const rIcon = document.getElementById('rIcon');
-  const rTitle = document.getElementById('rTitle');
-  const rMsg = document.getElementById('rMsg');
-  const rMeta = document.getElementById('rMeta');
-  const recent = document.getElementById('recent');
-  const recentList = document.getElementById('recentList');
+  // ── 時間點劃分：14:00 前報到、15:30 後簽退 ──
+  const CHECKIN_END   = new Date('2026-07-04T14:00:00'); // 之前：報到
+  const CHECKOUT_START = new Date('2026-07-04T15:30:00'); // 之後：簽退
+
+  // 可用 ?mode=checkin / ?mode=checkout 手動測試；否則依現在時間自動判斷
+  function resolveMode(){
+    const forced = new URLSearchParams(location.search).get('mode');
+    if(forced === 'checkin' || forced === 'checkout' || forced === 'closed') return forced;
+    const now = new Date();
+    if(now < CHECKIN_END) return 'checkin';
+    if(now >= CHECKOUT_START) return 'checkout';
+    return 'closed';
+  }
+
+  const MODE = resolveMode();
+  const $ = id => document.getElementById(id);
+  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+  const card = $('card'), form = $('mainForm'), empnoEl = $('empno'), submitBtn = $('submitBtn');
+  const result = $('result'), rIcon = $('rIcon'), rTitle = $('rTitle'), rMsg = $('rMsg'), rMeta = $('rMeta');
+  const recent = $('recent'), recentList = $('recentList');
+
+  // 依模式設定畫面
+  if(MODE === 'closed'){
+    card.style.display = 'none';
+    $('closedBox').classList.add('show');
+    $('closedMsg').innerHTML = '報到已於 <strong>14:00</strong> 截止；簽退將於 <strong>15:30</strong> 開放。<br>請於開放時段再行操作，謝謝。';
+  } else {
+    const isIn = MODE === 'checkin';
+    document.body.classList.toggle('checkout', !isIn);
+    $('modeBadge').textContent = isIn ? '報到中' : '簽退中';
+    $('modeBadge').className = 'mode-badge ' + (isIn ? 'in' : 'out');
+    $('cardTitle').textContent = isIn ? '現場報到' : '課程簽退';
+    $('cardLead').textContent = isIn ? '請輸入您的「人事號」完成報到' : '請輸入您的「人事號」完成簽退';
+    submitBtn.textContent = isIn ? '報到' : '簽退';
+    submitBtn.className = 'btn' + (isIn ? '' : ' green');
+    $('recentTitle').textContent = isIn ? '本裝置最近報到紀錄' : '本裝置最近簽退紀錄';
+    if(!isIn) $('surveyBox').classList.add('show'); // 簽退模式顯示問卷連結
+    empnoEl.focus();
+  }
 
   function showResult(kind, icon, title, msg, meta){
     result.className = 'result show ' + kind;
-    rIcon.textContent = icon;
-    rTitle.textContent = title;
-    rMsg.innerHTML = msg || '';
-    rMeta.innerHTML = meta || '';
+    rIcon.textContent = icon; rTitle.textContent = title;
+    rMsg.innerHTML = msg || ''; rMeta.innerHTML = meta || '';
   }
-
   function addRecent(name, campus, time){
     const li = document.createElement('li');
     const t = (time || '').split(' ')[1] || time || '';
-    li.innerHTML = '<span class="nm">' + esc(name) + '　<span style="font-weight:500;color:#5b7a85;">' +
+    li.innerHTML = '<span class="nm">' + esc(name) + '　<span style="font-weight:500;opacity:.8;">' +
       esc(campus || '') + '</span></span><span class="tm">' + esc(t) + '</span>';
     recentList.insertBefore(li, recentList.firstChild);
     while(recentList.children.length > 8) recentList.removeChild(recentList.lastChild);
     recent.classList.add('show');
   }
-  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
-  function resetInput(){
-    empnoEl.value = '';
-    empnoEl.focus();
-  }
+  if(MODE !== 'closed'){
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      const empno = empnoEl.value.trim();
+      if(!empno){ empnoEl.focus(); return; }
+      const isIn = MODE === 'checkin';
+      const actLabel = isIn ? '報到' : '簽退';
 
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-    const empno = empnoEl.value.trim();
-    if(!empno){ empnoEl.focus(); return; }
+      submitBtn.disabled = true;
+      submitBtn.textContent = actLabel + '中…';
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = '報到中…';
-
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'checkin', empno: empno })
-    })
-    .then(r => r.json())
-    .then(d => {
-      if(d.result === 'success'){
-        showResult('ok', '✅', '報到成功', '<strong style="font-size:1.15rem;">' + esc(d.name) + '</strong> 您好，歡迎參加！',
-          esc(d.campus || '') + (d.dept ? '　' + esc(d.dept) : ''));
-        addRecent(d.name, d.campus, d.time);
-        resetInput();
-      } else if(d.result === 'already'){
-        showResult('warn', '⚠️', '已完成報到', '<strong>' + esc(d.name) + '</strong> 已於稍早完成報到，無需重複報到。',
-          d.time ? '報到時間：' + esc(d.time) : '');
-        resetInput();
-      } else if(d.result === 'notfound'){
-        showResult('err', '❌', '查無報名資料', '查無人事號 <strong>' + esc(empno) + '</strong> 的報名紀錄，<br>請確認號碼或洽詢現場工作人員。', '');
-        empnoEl.select();
-      } else {
-        showResult('err', '❌', '報到失敗', esc(d.message || '請稍後再試'), '');
-      }
-    })
-    .catch(() => {
-      showResult('err', '❌', '連線失敗', '無法連線至伺服器，請檢查網路後再試一次。', '');
-    })
-    .finally(() => {
-      submitBtn.disabled = false;
-      submitBtn.textContent = '報到';
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: isIn ? 'checkin' : 'checkout', empno: empno })
+      })
+      .then(r => r.json())
+      .then(d => {
+        if(d.result === 'success'){
+          const verb = isIn ? '歡迎參加！' : '辛苦了，感謝參與！';
+          showResult('ok', '✅', actLabel + '成功',
+            '<strong style="font-size:1.15rem;">' + esc(d.name) + '</strong> 您好，' + verb,
+            esc(d.campus || '') + (d.dept ? '　' + esc(d.dept) : ''));
+          addRecent(d.name, d.campus, d.time);
+          empnoEl.value = ''; empnoEl.focus();
+        } else if(d.result === 'already'){
+          const past = isIn ? '已完成報到' : '已完成簽退';
+          showResult('warn', '⚠️', past,
+            '<strong>' + esc(d.name) + '</strong> ' + past + '，無需重複操作。',
+            d.time ? actLabel + '時間：' + esc(d.time) : '');
+          empnoEl.value = ''; empnoEl.focus();
+        } else if(d.result === 'notfound'){
+          showResult('err', '❌', '查無報名資料',
+            '查無人事號 <strong>' + esc(empno) + '</strong> 的報名紀錄，<br>請確認號碼或洽詢現場工作人員。', '');
+          empnoEl.select();
+        } else {
+          showResult('err', '❌', actLabel + '失敗', esc(d.message || '請稍後再試'), '');
+        }
+      })
+      .catch(() => showResult('err', '❌', '連線失敗', '無法連線至伺服器，請檢查網路後再試一次。', ''))
+      .finally(() => { submitBtn.disabled = false; submitBtn.textContent = actLabel; });
     });
-  });
-
-  empnoEl.focus();
+  }
 </script>
 </body>
 </html>

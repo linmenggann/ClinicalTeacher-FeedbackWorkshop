@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>報到現況儀表板｜臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊</title>
+<title>報到／簽退現況儀表板｜臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊</title>
 <style>
   :root{
     --bg:#f2f8fa;--ink:#143a47;--muted:#5b7a85;
@@ -95,7 +95,7 @@
 <header>
   <div class="wrap">
     <div>
-      <h1>報到現況儀表板</h1>
+      <h1>報到／簽退現況儀表板</h1>
       <p class="sub">臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊　·　115年7月4日（六）</p>
     </div>
     <div class="toolbar">
@@ -110,7 +110,7 @@
 
 <main>
   <div class="wrap">
-    <div id="loading" class="state"><div class="spinner"></div>載入報到資料中…</div>
+    <div id="loading" class="state"><div class="spinner"></div>載入報到／簽退資料中…</div>
     <div id="error" class="state" style="display:none;"></div>
     <div id="content" style="display:none;">
 
@@ -119,6 +119,8 @@
           <div class="lab">報名人數</div><div><span class="num" id="kReg">0</span><span class="unit">人</span></div></div>
         <div class="kpi"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></div>
           <div class="lab">已報到</div><div><span class="num" id="kIn">0</span><span class="unit">人</span></div></div>
+        <div class="kpi"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg></div>
+          <div class="lab">已簽退</div><div><span class="num" id="kOut">0</span><span class="unit">人</span></div></div>
         <div class="kpi rate"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div>
           <div class="lab">報到率</div><div><span class="num" id="kRate">0</span><span class="unit">%</span></div></div>
         <div class="kpi"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
@@ -175,14 +177,14 @@
   // 需求：試算表需設為「知道連結的任何人 → 檢視者」。
   const SHEET_ID = '1oghXn_uNIrESKl-i7WZu8XyAyskizCGgtLnzCVdQNTw';
   const REG_SHEET = '工作坊報名資料';
-  const CHECKIN_SHEET = '工作坊報到資料';
+  const CHECKIN_SHEET = '工作坊報到/簽退資料';
   const gvizUrl = name => 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
     '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(name);
 
   const REG_MAP = {'報名時間':'time','院區':'campus','單位':'dept','姓名':'name','人事號':'empno','職稱':'title','連絡電話/分機':'phone','E-mail':'email'};
   const REG_FIXED = ['time','campus','dept','name','empno','title','phone','email'];
-  const CHK_MAP = {'報到時間':'time','人事號':'empno','院區':'campus','單位':'dept','姓名':'name','職稱':'title'};
-  const CHK_FIXED = ['time','empno','campus','dept','name','title'];
+  const CHK_MAP = {'報到時間':'time','簽退時間':'checkout','人事號':'empno','院區':'campus','單位':'dept','姓名':'name','職稱':'title'};
+  const CHK_FIXED = ['time','checkout','empno','campus','dept','name','title'];
 
   const PALETTE = ['#f5c400','#1f9bc9','#e0a800','#7fd4ef','#1f87b0','#f0c84d','#2f9cc4'];
 
@@ -262,8 +264,8 @@
     .then(([reg, chk]) => {
       regRecords = reg || [];
       chkRecords = chk || [];
-      // 未報到 = 報名者中人事號不在報到清單者
-      const inSet = new Set(chkRecords.map(r => String(r.empno).trim()));
+      // 已報到 = 有報到時間者；未報到 = 報名者中未報到者
+      const inSet = new Set(chkRecords.filter(r => String(r.time).trim() !== '').map(r => String(r.empno).trim()));
       pendingRecords = regRecords.filter(r => !inSet.has(String(r.empno).trim()));
       render();
       loading.style.display='none'; content.style.display='block';
@@ -275,34 +277,42 @@
       errorBox.style.display='block';
       errorBox.innerHTML = '⚠️ 無法載入報到資料：' + (err && err.message ? err.message : '連線逾時') +
         '<br><br>可能為網路或 Google 伺服器忙線，請按「重新整理」再試一次。' +
-        '<br>若持續發生，請確認試算表已設為「知道連結的任何人 → 檢視者」，且「工作坊報到資料」分頁已存在。';
+        '<br>若持續發生，請確認試算表已設為「知道連結的任何人 → 檢視者」，且「工作坊報到/簽退資料」分頁已存在。';
     });
   }
 
+  let checkedInRecords = [];
   function render(){
-    const reg = regRecords.length, inCnt = chkRecords.length;
+    const reg = regRecords.length;
+    checkedInRecords = chkRecords.filter(r => String(r.time).trim() !== '');
+    const inCnt = checkedInRecords.length;
+    const outCnt = chkRecords.filter(r => String(r.checkout).trim() !== '').length;
+    const pend = Math.max(0, reg - inCnt);
     const rate = reg ? Math.round(inCnt/reg*100) : 0;
     $('kReg').textContent = reg;
     $('kIn').textContent = inCnt;
+    $('kOut').textContent = outCnt;
     $('kRate').textContent = rate;
-    $('kPending').textContent = Math.max(0, reg - inCnt);
+    $('kPending').textContent = pend;
 
-    renderStatusDonut(inCnt, Math.max(0, reg - inCnt));
-    renderDonut('campusDonut','campusLegend', groupCount(chkRecords,'campus'), inCnt);
+    renderStatusDonut(outCnt, Math.max(0, inCnt - outCnt), pend, rate);
+    renderDonut('campusDonut','campusLegend', groupCount(checkedInRecords,'campus'), inCnt);
     renderTrend();
     renderTable();
   }
 
-  function renderStatusDonut(inCnt, pend){
-    const total = inCnt + pend;
-    const data = [['已報到', inCnt], ['未報到', pend]];
-    const cols = ['#1e9e6a', '#e0a800'];
+  // 三段：已簽退 / 已報到未簽退 / 未報到；中央顯示報到率
+  function renderStatusDonut(outCnt, inNotOut, pend, rate){
+    const total = outCnt + inNotOut + pend;
+    const data = [['已簽退', outCnt], ['已報到未簽退', inNotOut], ['未報到', pend]];
+    const cols = ['#1e9e6a', '#1f9bc9', '#e0a800'];
     const svg = $('statusDonut'), legend = $('statusLegend');
     svg.innerHTML=''; legend.innerHTML='';
     if(total===0){ legend.innerHTML='<span class="empty">尚無資料</span>'; return; }
     const cx=21,cy=21,r=15.915,C=2*Math.PI*r; let offset=0;
     svg.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#eef4f4" stroke-width="6"></circle>`;
     data.forEach(([k,v],i)=>{
+      if(v<=0) return;
       const frac=v/total,len=frac*C,col=cols[i];
       svg.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="6"
         stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"></circle>`;
@@ -310,7 +320,7 @@
       legend.innerHTML += `<div class="li"><span class="dot" style="background:${col}"></span>
         <span class="lk">${k}</span><span class="lv">${v} 人 (${Math.round(frac*100)}%)</span></div>`;
     });
-    svg.innerHTML += `<text x="21" y="20" text-anchor="middle" font-size="6" font-weight="800" fill="#1e9e6a">${Math.round(inCnt/total*100)}%</text>
+    svg.innerHTML += `<text x="21" y="20" text-anchor="middle" font-size="6" font-weight="800" fill="#1e9e6a">${rate}%</text>
       <text x="21" y="26" text-anchor="middle" font-size="3" fill="#5b7a85">報到率</text>`;
   }
 
@@ -334,9 +344,9 @@
 
   function renderTrend(){
     const box=$('trend'); box.innerHTML='';
-    if(chkRecords.length===0){ box.innerHTML='<span class="empty">尚無報到資料</span>'; return; }
+    if(checkedInRecords.length===0){ box.innerHTML='<span class="empty">尚無報到資料</span>'; return; }
     const m={};
-    chkRecords.forEach(r=>{ const k=hourKey(r.time); m[k]=(m[k]||0)+1; });
+    checkedInRecords.forEach(r=>{ const k=hourKey(r.time); m[k]=(m[k]||0)+1; });
     const entries=Object.entries(m).sort((a,b)=>a[0]<b[0]?-1:1);
     const max=Math.max(...entries.map(e=>e[1]));
     entries.forEach(([k,v])=>{
@@ -349,7 +359,7 @@
 
   function currentRows(){
     const q = $('search').value.trim().toLowerCase();
-    const src = tableView === 'in' ? chkRecords : pendingRecords;
+    const src = tableView === 'in' ? checkedInRecords : pendingRecords;
     if(!q) return src;
     return src.filter(r => [r.name,r.dept,r.campus,r.title,r.empno].some(v=>String(v||'').toLowerCase().includes(q)));
   }
@@ -357,19 +367,22 @@
   function renderTable(){
     const thead=$('thead'), tb=$('tbody');
     if(tableView === 'in'){
-      thead.innerHTML = '<tr><th>#</th><th>報到時間</th><th>院區</th><th>單位</th><th>姓名</th><th>職稱</th></tr>';
+      thead.innerHTML = '<tr><th>#</th><th>報到時間</th><th>簽退時間</th><th>院區</th><th>單位</th><th>姓名</th><th>職稱</th></tr>';
     } else {
       thead.innerHTML = '<tr><th>#</th><th>院區</th><th>單位</th><th>姓名</th><th>職稱</th><th>人事號</th></tr>';
     }
     const rows = currentRows();
     tb.innerHTML='';
     if(rows.length===0){
-      tb.innerHTML = '<tr><td colspan="6" class="empty">'+(tableView==='in'?'尚無報到資料':'全部報名者皆已報到 🎉')+'</td></tr>';
+      tb.innerHTML = '<tr><td colspan="7" class="empty">'+(tableView==='in'?'尚無報到資料':'全部報名者皆已報到 🎉')+'</td></tr>';
     }
     rows.forEach((r,i)=>{
       const tr=document.createElement('tr');
       if(tableView === 'in'){
-        tr.innerHTML=`<td>${i+1}</td><td>${fmtTime(r.time)}</td><td><span class="pill">${esc(r.campus)}</span></td>
+        const outCell = String(r.checkout).trim() !== ''
+          ? fmtTime(r.checkout)
+          : '<span style="color:#c99a00;font-weight:600;">未簽退</span>';
+        tr.innerHTML=`<td>${i+1}</td><td>${fmtTime(r.time)}</td><td>${outCell}</td><td><span class="pill">${esc(r.campus)}</span></td>
           <td>${esc(r.dept)}</td><td>${esc(r.name)}</td><td>${esc(r.title)}</td>`;
       } else {
         tr.innerHTML=`<td>${i+1}</td><td><span class="pill">${esc(r.campus)}</span></td><td>${esc(r.dept)}</td>
