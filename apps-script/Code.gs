@@ -348,6 +348,29 @@ function sendReminderTest() {
   Logger.log('✅ 測試信已寄出至：' + me + '（請同時檢查垃圾郵件匣）');
 }
 
+/** 補寄對象：修改此地址後執行 sendReminderSupplement（多人可用逗號分隔） */
+var SUPPLEMENT_EMAILS = 'B41242@chimei.org.tw';
+
+/** 補寄課前提醒給指定收件人（晚報名者適用） */
+function sendReminderSupplement() {
+  var blob = getPosterBlob();
+  var html = buildReminderHtml();
+  var text = buildReminderText();
+  var list = SUPPLEMENT_EMAILS.split(',').map(function (s) { return s.trim(); }).filter(String);
+  list.forEach(function (email) {
+    MailApp.sendEmail({
+      to: email,
+      subject: REMINDER_SUBJECT,
+      htmlBody: html,
+      body: text,
+      attachments: [blob],
+      name: REMINDER_SENDER_NAME
+    });
+    Logger.log('✅ 已補寄至：' + email);
+    Utilities.sleep(500);
+  });
+}
+
 /** 步驟 2：正式寄送給全部報名者（逐一個別寄送） */
 function sendReminderEmails() {
   var recipients = getReminderRecipients();
