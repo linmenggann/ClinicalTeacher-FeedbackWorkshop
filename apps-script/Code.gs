@@ -320,18 +320,32 @@ function getPosterBlob() {
   return res.getBlob().setName(POSTER_PDF_NAME);
 }
 
+/** 收件備援：若無法取得執行者信箱時使用 */
+var REMINDER_FALLBACK_EMAIL = 'linmenggann@gmail.com';
+
+function getSelfEmail() {
+  var me = '';
+  try { me = Session.getActiveUser().getEmail(); } catch (e) {}
+  if (!me) { try { me = Session.getEffectiveUser().getEmail(); } catch (e) {} }
+  return me || REMINDER_FALLBACK_EMAIL;
+}
+
 /** 步驟 1：先寄一封測試信給自己，確認樣式與附件 */
 function sendReminderTest() {
-  var me = Session.getActiveUser().getEmail();
+  var me = getSelfEmail();
+  Logger.log('本日剩餘寄信額度：' + MailApp.getRemainingDailyQuota());
+  Logger.log('收件地址：' + me);
+  var blob = getPosterBlob();
+  Logger.log('附件已抓取：' + blob.getName() + '（' + blob.getBytes().length + ' bytes）');
   MailApp.sendEmail({
     to: me,
     subject: '[測試] ' + REMINDER_SUBJECT,
     htmlBody: buildReminderHtml(),
     body: buildReminderText(),
-    attachments: [getPosterBlob()],
+    attachments: [blob],
     name: REMINDER_SENDER_NAME
   });
-  Logger.log('測試信已寄至：' + me);
+  Logger.log('✅ 測試信已寄出至：' + me + '（請同時檢查垃圾郵件匣）');
 }
 
 /** 步驟 2：正式寄送給全部報名者（逐一個別寄送） */
