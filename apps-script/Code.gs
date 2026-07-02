@@ -221,3 +221,151 @@ function setupSurveySheet() {
   sheet.getRange(1, 1, 1, SURVEY_HEADERS.length).setValues([SURVEY_HEADERS]).setFontWeight('bold');
   sheet.setFrozenRows(1);
 }
+
+/* ══════════════════════════════════════════════════════════
+ * 課前提醒信（方案 A：Apps Script 一鍵寄送）
+ *
+ * 使用方式（在 Apps Script 編輯器中）：
+ *   1. 先執行 sendReminderTest()  → 只寄一封給你自己，確認樣式與附件
+ *   2. 確認無誤後執行 sendReminderEmails() → 逐一寄給全部報名者
+ *
+ * 說明：
+ *   - 寄件人為執行者的 Google 帳號（linmenggann@gmail.com）
+ *   - 附件海報 PDF 由 GitHub Pages 自動抓取，無需上傳 Drive
+ *   - 逐一個別寄送，收件人彼此看不到對方信箱
+ *   - Gmail 免費帳號每日上限約 100 封；本名單 49 封在額度內
+ * ══════════════════════════════════════════════════════════ */
+
+var REMINDER_SUBJECT = '【課前提醒】7/4(六)臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊';
+var REMINDER_SENDER_NAME = '奇美醫院教學部';
+var POSTER_PDF_URL = 'https://linmenggann.github.io/ClinicalTeacher-FeedbackWorkshop/' +
+  encodeURIComponent('1150704臨床教學中的拋與接v2.pdf');
+var POSTER_PDF_NAME = '1150704臨床教學中的拋與接v2.pdf';
+
+/** 信件 HTML 內文（仿院內範本樣式：微軟正黑體、深藍標題、黃底日期強調） */
+function buildReminderHtml() {
+  var blue = '#121b89', hl = 'background-color:#e9eafc;';
+  return '' +
+  '<div style="font-family:微軟正黑體,Microsoft JhengHei,sans-serif;color:#1f1f1f;">' +
+    '<div><b><span style="font-size:26px;color:' + blue + ';">7/4</span>' +
+      '<span style="font-size:18px;color:' + blue + ';">(六)</span>' +
+      '<span style="font-size:26px;color:' + blue + ';">課前提醒📢📢</span></b></div>' +
+    '<div><b><span style="font-size:24px;color:' + blue + ';' + hl + '">臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊</span></b></div>' +
+    '<br>' +
+    '<div><b><span style="font-size:16px;color:' + blue + ';">您好，恭喜您已成功報名7/4(六)【臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊】，課程相關資訊如下，敬請預留時間準時出席：</span></b></div>' +
+    '<br>' +
+    '<div><b style="background-color:#fff9dd;">【課程資訊】</b></div>' +
+    '<ul>' +
+      '<li><b>日期：</b>115 年 <b style="font-size:18px;color:' + blue + ';' + hl + '">7 月 4 日(六)</b></li>' +
+      '<li><b>時間：</b>12:50 ~ 16:15（12:30 開始報到）</li>' +
+      '<li><b>地點：</b>奇美醫院 第三醫療大樓331、332會議室（710臺南市永康區中華路901號）</li>' +
+      '<li><b>學分申請：</b>臨床教師認證：「進階」2 學分、Ac 類「敘事醫學」1 學分</li>' +
+    '</ul>' +
+    '<div><b style="background-color:#fff9dd;">【注意事項】</b></div>' +
+    '<ul>' +
+      '<li>若您因故無法參與課程，敬請提前致電予教學部詩芸（分機57439），以利候補同仁遞補參與，謝謝。</li>' +
+      '<li>本課程須<b><u>全程參與</u></b>並完成課程當天的<b><u>課後問卷</u></b>，始得核予學分。</li>' +
+      '<li>因為課程中會有很多內容素材不會直接在簡報中，且會有需要走動的情境。參與者可自行攜帶手機做內容拍照紀錄。但平板或筆電做筆記的話，估計對個人參與狀態可能會比較干擾，因此較不建議攜帶。</li>' +
+    '</ul>' +
+    '<br>' +
+    '<div style="font-size:12px;">=================================<br>' +
+    '奇美醫療財團法人奇美醫院<br>' +
+    '教學部 陳詩芸教學行政管理員<br>' +
+    '電話：06-2812811分機57439／簡碼：1412<br>' +
+    '信箱：b20715@mail.chimei.org.tw<br>' +
+    '地址：台南市永康區中華路901號<br>' +
+    '=================================</div>' +
+  '</div>';
+}
+
+/** 純文字備援內文 */
+function buildReminderText() {
+  return '7/4(六)課前提醒\n臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊\n\n' +
+  '您好，恭喜您已成功報名7/4(六)【臨床教學中的拋與接-教學溝通的心理安全感與回饋技巧工作坊】，課程相關資訊如下，敬請預留時間準時出席：\n\n' +
+  '【課程資訊】\n' +
+  '日期：115 年 7 月 4 日(六)\n' +
+  '時間：12:50 ~ 16:15（12:30 開始報到）\n' +
+  '地點：奇美醫院 第三醫療大樓331、332會議室（710臺南市永康區中華路901號）\n' +
+  '學分申請：臨床教師認證：「進階」2 學分、Ac 類「敘事醫學」1 學分\n\n' +
+  '【注意事項】\n' +
+  '．若您因故無法參與課程，敬請提前致電予教學部詩芸（分機57439），以利候補同仁遞補參與，謝謝。\n' +
+  '．本課程須全程參與並完成課程當天的課後問卷，始得核予學分。\n' +
+  '．因為課程中會有很多內容素材不會直接在簡報中，且會有需要走動的情境。參與者可自行攜帶手機做內容拍照紀錄。但平板或筆電做筆記的話，估計對個人參與狀態可能會比較干擾，因此較不建議攜帶。\n\n' +
+  '=================================\n奇美醫療財團法人奇美醫院\n教學部 陳詩芸教學行政管理員\n' +
+  '電話：06-2812811分機57439／簡碼：1412\n信箱：b20715@mail.chimei.org.tw\n地址：台南市永康區中華路901號\n=================================';
+}
+
+/** 從報名分頁讀取收件人（去重、過濾空白與無效信箱） */
+function getReminderRecipients() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_NAME);
+  var out = [], seen = {};
+  if (!sheet || sheet.getLastRow() < 2) return out;
+  var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.length).getValues();
+  values.forEach(function (r) {
+    var name = String(r[3] || '').trim();
+    var email = String(r[7] || '').trim();
+    if (!email || email.indexOf('@') < 1) return;
+    var key = email.toLowerCase();
+    if (seen[key]) return;
+    seen[key] = true;
+    out.push({ name: name, email: email });
+  });
+  return out;
+}
+
+/** 抓取海報 PDF 附件 */
+function getPosterBlob() {
+  var res = UrlFetchApp.fetch(POSTER_PDF_URL);
+  return res.getBlob().setName(POSTER_PDF_NAME);
+}
+
+/** 步驟 1：先寄一封測試信給自己，確認樣式與附件 */
+function sendReminderTest() {
+  var me = Session.getActiveUser().getEmail();
+  MailApp.sendEmail({
+    to: me,
+    subject: '[測試] ' + REMINDER_SUBJECT,
+    htmlBody: buildReminderHtml(),
+    body: buildReminderText(),
+    attachments: [getPosterBlob()],
+    name: REMINDER_SENDER_NAME
+  });
+  Logger.log('測試信已寄至：' + me);
+}
+
+/** 步驟 2：正式寄送給全部報名者（逐一個別寄送） */
+function sendReminderEmails() {
+  var recipients = getReminderRecipients();
+  if (recipients.length === 0) { Logger.log('查無收件人'); return; }
+  var blob = getPosterBlob();
+  var html = buildReminderHtml();
+  var text = buildReminderText();
+  var ok = 0, fail = [];
+  recipients.forEach(function (p) {
+    try {
+      MailApp.sendEmail({
+        to: p.email,
+        subject: REMINDER_SUBJECT,
+        htmlBody: html,
+        body: text,
+        attachments: [blob],
+        name: REMINDER_SENDER_NAME
+      });
+      ok++;
+      Utilities.sleep(500); // 避免觸發速率限制
+    } catch (err) {
+      fail.push(p.name + ' <' + p.email + '>：' + err.message);
+    }
+  });
+  var report = '寄送完成：成功 ' + ok + ' 封 / 共 ' + recipients.length + ' 位' +
+    (fail.length ? '\n失敗清單：\n' + fail.join('\n') : '');
+  Logger.log(report);
+  // 寄一份結果摘要給自己
+  MailApp.sendEmail({
+    to: Session.getActiveUser().getEmail(),
+    subject: '[寄送結果] ' + REMINDER_SUBJECT,
+    body: report,
+    name: REMINDER_SENDER_NAME
+  });
+}
