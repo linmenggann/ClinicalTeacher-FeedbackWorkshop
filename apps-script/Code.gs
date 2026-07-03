@@ -222,6 +222,34 @@ function setupSurveySheet() {
   sheet.setFrozenRows(1);
 }
 
+/**
+ * 一次性：將人事號欄設為純文字，避免如 8607E7 被轉成科學記號數字，
+ * 並列出目前已被轉成數字的可疑人事號（需手動重新輸入原值）。
+ * 範圍：工作坊報名資料 E 欄、工作坊報到/簽退資料 F 欄。
+ */
+function setupEmpnoTextFormat() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var targets = [
+    { name: SHEET_NAME, col: 5, colLabel: 'E' },          // 報名：人事號在 E 欄
+    { name: CHECKIN_SHEET_NAME, col: 6, colLabel: 'F' }   // 報到/簽退：人事號在 F 欄
+  ];
+  targets.forEach(function (t) {
+    var sheet = ss.getSheetByName(t.name);
+    if (!sheet) return;
+    sheet.getRange(1, t.col, sheet.getMaxRows(), 1).setNumberFormat('@'); // 純文字
+    if (sheet.getLastRow() > 1) {
+      var values = sheet.getRange(2, t.col, sheet.getLastRow() - 1, 1).getValues();
+      values.forEach(function (r, i) {
+        if (typeof r[0] === 'number') {
+          Logger.log('⚠️ ' + t.name + ' 第 ' + (i + 2) + ' 列（' + t.colLabel + '欄）人事號為數字：' +
+            r[0] + '，可能已被自動轉換，請手動重新輸入原值');
+        }
+      });
+    }
+    Logger.log('✅ ' + t.name + ' ' + t.colLabel + ' 欄已設為純文字');
+  });
+}
+
 /* ══════════════════════════════════════════════════════════
  * 課前提醒信（方案 A：Apps Script 一鍵寄送）
  *
