@@ -377,7 +377,7 @@ function sendReminderTest() {
 }
 
 /** 補寄對象：修改此地址後執行 sendReminderSupplement（多人可用逗號分隔） */
-var SUPPLEMENT_EMAILS = 'yeh8607e7@gmail.com';
+var SUPPLEMENT_EMAILS = 'touch714@yahoo.com.tw';
 
 /** 補寄課前提醒給指定收件人（晚報名者適用） */
 function sendReminderSupplement() {
