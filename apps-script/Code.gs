@@ -225,13 +225,14 @@ function setupSurveySheet() {
 /**
  * 一次性：將人事號欄設為純文字，避免如 8607E7 被轉成科學記號數字，
  * 並列出目前已被轉成數字的可疑人事號（需手動重新輸入原值）。
- * 範圍：工作坊報名資料 E 欄、工作坊報到/簽退資料 F 欄。
+ * 範圍：工作坊報名資料 E 欄、工作坊報到/簽退資料 F 欄、工作坊滿意度調查 E 欄。
  */
 function setupEmpnoTextFormat() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var targets = [
     { name: SHEET_NAME, col: 5, colLabel: 'E' },          // 報名：人事號在 E 欄
-    { name: CHECKIN_SHEET_NAME, col: 6, colLabel: 'F' }   // 報到/簽退：人事號在 F 欄
+    { name: CHECKIN_SHEET_NAME, col: 6, colLabel: 'F' },  // 報到/簽退：人事號在 F 欄
+    { name: SURVEY_SHEET_NAME, col: 5, colLabel: 'E' }    // 滿意度調查：人事號在 E 欄
   ];
   targets.forEach(function (t) {
     var sheet = ss.getSheetByName(t.name);
