@@ -66,10 +66,10 @@ function nowStamp() {
 function findRegistrationByEmpno(ss, empno) {
   var sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet || sheet.getLastRow() < 2) return null;
-  var target = String(empno).trim();
+  var target = String(empno).trim().toUpperCase(); // 人事號比對不分大小寫
   var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.length).getValues();
   for (var i = 0; i < values.length; i++) {
-    if (String(values[i][4]).trim() === target) { // 人事號在第 5 欄
+    if (String(values[i][4]).trim().toUpperCase() === target) { // 人事號在第 5 欄
       return { campus: values[i][1], dept: values[i][2], name: values[i][3], title: values[i][5] };
     }
   }
@@ -79,10 +79,10 @@ function findRegistrationByEmpno(ss, empno) {
 /** 以人事號在報到/簽退資料中查詢該列，回傳列號與報到/簽退時間，否則 null */
 function findCheckinRow(sheet, empno) {
   if (!sheet || sheet.getLastRow() < 2) return null;
-  var target = String(empno).trim();
+  var target = String(empno).trim().toUpperCase(); // 人事號比對不分大小寫
   var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, CHECKIN_HEADERS.length).getValues();
   for (var i = 0; i < values.length; i++) {
-    if (String(values[i][5]).trim() === target) { // 人事號在第 6 欄
+    if (String(values[i][5]).trim().toUpperCase() === target) { // 人事號在第 6 欄
       return { rowIndex: i + 2, checkin: values[i][0], checkout: values[i][1], name: values[i][4] };
     }
   }
