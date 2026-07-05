@@ -58,6 +58,17 @@ function jsonOut(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+/**
+ * 人事號以前置撇號寫入，強制為純文字。
+ * appendRow 寫入時會自動解析型別（如 8607E7 → 8607x10^7），
+ * 即使欄位已設純文字格式也可能失效；前置撇號可徹底避免，
+ * 且撇號不會顯示、getValues/GViz 讀出的仍是原字串。
+ */
+function empnoAsText(empno) {
+  var s = String(empno == null ? '' : empno).trim();
+  return s ? "'" + s : '';
+}
+
 function nowStamp() {
   return Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy/MM/dd HH:mm:ss');
 }
@@ -116,7 +127,7 @@ function handleRegister(ss, data) {
   }
   sheet.appendRow([
     nowStamp(), data.campus || '', data.dept || '', data.name || '',
-    data.empno || '', data.title || '', data.phone || '', data.email || ''
+    empnoAsText(data.empno), data.title || '', data.phone || '', data.email || ''
   ]);
   return jsonOut({ result: 'success' });
 }
@@ -140,7 +151,7 @@ function handleCheckin(ss, data) {
     // 已先簽退但無報到紀錄 → 補上報到時間
     csheet.getRange(row.rowIndex, 1).setValue(ts);
   } else {
-    csheet.appendRow([ts, '', reg.campus, reg.dept, reg.name, empno, reg.title]);
+    csheet.appendRow([ts, '', reg.campus, reg.dept, reg.name, empnoAsText(empno), reg.title]);
   }
   return jsonOut({ result: 'success', mode: 'checkin', name: reg.name, campus: reg.campus, dept: reg.dept, title: reg.title, time: ts });
 }
@@ -163,7 +174,7 @@ function handleCheckout(ss, data) {
     }
     csheet.getRange(row.rowIndex, 2).setValue(ts); // 簽退時間在第 2 欄
   } else {
-    csheet.appendRow(['', ts, reg.campus, reg.dept, reg.name, empno, reg.title]);
+    csheet.appendRow(['', ts, reg.campus, reg.dept, reg.name, empnoAsText(empno), reg.title]);
   }
   return jsonOut({ result: 'success', mode: 'checkout', name: reg.name, campus: reg.campus, dept: reg.dept, title: reg.title, time: ts });
 }
@@ -176,7 +187,7 @@ function handleSurvey(ss, data) {
   var reg = empno ? findRegistrationByEmpno(ss, empno) : null;
   sheet.appendRow([
     nowStamp(),
-    reg ? reg.campus : '', reg ? reg.dept : '', reg ? reg.name : '', empno, reg ? reg.title : '',
+    reg ? reg.campus : '', reg ? reg.dept : '', reg ? reg.name : '', empnoAsText(empno), reg ? reg.title : '',
     a.q1 || '', a.q2 || '', a.q3 || '', a.q4 || '', a.q5 || '',
     a.q6 || '', a.q7 || '', a.q8 || '', a.q9 || '', a.q10 || '',
     data.comment || ''
