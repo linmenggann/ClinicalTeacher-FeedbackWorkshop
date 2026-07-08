@@ -115,7 +115,7 @@
 
   <!-- 非開放時段提示 -->
   <div class="closed" id="closedBox">
-    <div class="ic">⏳</div>
+    <div class="ic" id="closedIcon">⏳</div>
     <h2 id="closedTitle">目前非報到／簽退時段</h2>
     <p id="closedMsg"></p>
   </div>
@@ -140,8 +140,12 @@
   const CHECKIN_END   = new Date('2026-07-04T14:00:00'); // 之前：報到
   const CHECKOUT_START = new Date('2026-07-04T15:30:00'); // 之後：簽退
 
+  // 活動已於 115/7/4 結束，系統停止受理（不受時間與網址參數影響）
+  const EVENT_ENDED = true;
+
   // 可用 ?mode=checkin / ?mode=checkout 手動測試；否則依現在時間自動判斷
   function resolveMode(){
+    if(EVENT_ENDED) return 'closed';
     const forced = new URLSearchParams(location.search).get('mode');
     if(forced === 'checkin' || forced === 'checkout' || forced === 'closed') return forced;
     const now = new Date();
@@ -161,7 +165,13 @@
   if(MODE === 'closed'){
     card.style.display = 'none';
     $('closedBox').classList.add('show');
-    $('closedMsg').innerHTML = '報到已於 <strong>14:00</strong> 截止；簽退將於 <strong>15:30</strong> 開放。<br>請於開放時段再行操作，謝謝。';
+    if(EVENT_ENDED){
+      $('closedIcon').textContent = '🎉';
+      $('closedTitle').textContent = '本次工作坊活動已圓滿結束';
+      $('closedMsg').innerHTML = '報到／簽退系統已停止受理，感謝您的參與！<br>如有學分或相關問題，請洽教學部 06-281-2811 分機 57439。';
+    } else {
+      $('closedMsg').innerHTML = '報到已於 <strong>14:00</strong> 截止；簽退將於 <strong>15:30</strong> 開放。<br>請於開放時段再行操作，謝謝。';
+    }
   } else {
     const isIn = MODE === 'checkin';
     document.body.classList.toggle('checkout', !isIn);

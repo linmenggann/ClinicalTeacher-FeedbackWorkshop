@@ -99,6 +99,12 @@
       <h2>問卷已送出</h2>
       <p>感謝您的寶貴意見，祝您有美好的一天！</p>
     </div>
+
+    <div class="done" id="closedBox">
+      <div class="ic">🙏</div>
+      <h2>問卷填寫已截止</h2>
+      <p>本次工作坊活動已圓滿結束，滿意度問卷已停止受理，感謝您的參與！<br>如有相關問題，請洽教學部 06-281-2811 分機 57439。</p>
+    </div>
   </div>
 </main>
 
@@ -107,6 +113,14 @@
 <script>
   // 與報名/報到相同的 Apps Script Web App 網址（doPost 以 action:'survey' 分流）
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_Nq9__BMhF1szoVIPsw3bJ1p4HfZEh0dkrL292-Vnto1FORFNX2Xw5zUjh9j36qD2/exec';
+
+  // 活動已於 115/7/4 結束，問卷停止受理
+  const SURVEY_CLOSED = true;
+  if (SURVEY_CLOSED) {
+    document.getElementById('introBox').style.display = 'none';
+    document.getElementById('surveyForm').style.display = 'none';
+    document.getElementById('closedBox').classList.add('show');
+  }
 
   // 依報名網頁課程內容設計的 10 題滿意度問卷
   const QUESTIONS = [
