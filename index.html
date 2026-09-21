@@ -294,7 +294,7 @@
           </div>
           <div class="field">
             <label for="empno">人事號<span class="req">＊</span></label>
-            <input type="text" id="empno" name="empno" placeholder="請輸入人事號" required>
+            <input type="text" id="empno" name="empno" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="例：910632 或 B20715" required>
           </div>
           <div class="field">
             <label for="title">職稱<span class="req">＊</span></label>
@@ -393,15 +393,31 @@
           lockForm();
           throw new Error('__FULL__');
         }
-        // 以 text/plain 送出可避免 CORS 預檢；Apps Script 端以 e.postData.contents 解析
+        // 以 text/plain 送出可避免 CORS 預檢；需讀回結果以顯示「重複報名」等訊息
         return fetch(SCRIPT_URL, {
           method: 'POST',
-          mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(data)
-        });
+        }).then(function(r){ return r.json(); });
       })
-      .then(function(){
+      .then(function(res){
+        res = res || {};
+        // 後端以 trim + 不分大小寫比對，小寫或前後空白皆會判定為重複
+        if(res.result === 'duplicate'){
+          alert('此人事號已完成報名' + (res.name ? '（' + res.name + '）' : '') +
+                '，請勿重複報名。
+如需協助請來電 06-281-2811 分機 57439。');
+          return;
+        }
+        if(res.result === 'full'){
+          lockForm();
+          fullPanel.scrollIntoView({behavior:'smooth', block:'center'});
+          return;
+        }
+        if(res.result && res.result !== 'success'){
+          alert('報名失敗：' + (res.message || res.result));
+          return;
+        }
         form.reset();
         success.classList.add('show');
         success.scrollIntoView({behavior:'smooth', block:'center'});

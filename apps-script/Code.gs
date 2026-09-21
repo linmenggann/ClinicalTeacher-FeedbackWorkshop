@@ -34,6 +34,15 @@ var SURVEY_HEADERS = ['填答時間', '院區', '單位', '姓名', '人事號',
   'Q5講師講授清楚', 'Q6講師引導互動', 'Q7營造心理安全能力', 'Q8運用支持式回饋', 'Q9時間流程安排', 'Q10願意推薦',
   '其他建議'];
 
+/**
+ * 各分頁「必須原樣保存」的文字欄（欄號，1 起算）。
+ * 含人事號、電話/分機與時間字串——都是看起來像數字/日期但不可被型別判讀的欄位。
+ */
+var TEXT_COLS = {};
+TEXT_COLS[SHEET_NAME]         = [1, 5, 7]; // 報名時間、人事號、連絡電話/分機
+TEXT_COLS[CHECKIN_SHEET_NAME] = [1, 2, 6]; // 報到時間、簽退時間、人事號
+TEXT_COLS[SURVEY_SHEET_NAME]  = [1, 5];    // 填答時間、人事號
+
 /** 目前已報名人數（不含表頭） */
 function countRegistrations(sheet) {
   if (!sheet) return 0;
@@ -58,15 +67,52 @@ function jsonOut(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+/* ══════════════════════════════════════════════════════════
+ * 識別碼（人事號／電話／時間字串等）共用處理
+ *
+ * 規格重點：
+ *   - 寫入前先把儲存格設為純文字格式（@），再寫值。
+ *     純文字格式下試算表不做型別判讀，8607E7 不會變成 8.607E+10。
+ *   - 禁止加前置撇號：setValues 寫入時撇號會被當字面字元存進儲存格
+ *     （顯示 'B509A9），下載 Excel 或匯入其他系統都會多一個撇號。
+ *   - 讀取端一律去掉殘留撇號並 trim()，以相容舊資料。
+ *   - 所有寫入走 appendRowSafe / setCellSafe，不可在別處直接 setValues 寫文字欄。
+ * ══════════════════════════════════════════════════════════ */
+
+/** 正規化：去前後空白、去掉殘留的前置撇號（相容舊資料） */
+function normId(v) {
+  var s = (v == null ? '' : String(v)).trim();
+  while (s.charAt(0) === "'") s = s.slice(1).trim();
+  return s;
+}
+
+/** 比對用鍵值：trim 後轉大寫（不分大小寫） */
+function idKey(v) { return normId(v).toUpperCase(); }
+
+/** 兩個識別碼是否相同（trim + 不分大小寫） */
+function sameId(a, b) {
+  var ka = idKey(a);
+  return ka !== '' && ka === idKey(b);
+}
+
 /**
- * 人事號以前置撇號寫入，強制為純文字。
- * appendRow 寫入時會自動解析型別（如 8607E7 → 8607x10^7），
- * 即使欄位已設純文字格式也可能失效；前置撇號可徹底避免，
- * 且撇號不會顯示、getValues/GViz 讀出的仍是原字串。
+ * 唯一的新增資料列入口。
+ * 先將該列的文字欄設為純文字格式，再以 setValues 寫入（不加撇號）。
  */
-function empnoAsText(empno) {
-  var s = String(empno == null ? '' : empno).trim();
-  return s ? "'" + s : '';
+function appendRowSafe(sheet, values, textCols) {
+  var row = sheet.getLastRow() + 1;
+  (textCols || []).forEach(function (c) {
+    sheet.getRange(row, c).setNumberFormat('@');
+  });
+  sheet.getRange(row, 1, 1, values.length).setValues([values]);
+  return row;
+}
+
+/** 單格寫入：同樣先設純文字格式再寫值 */
+function setCellSafe(sheet, row, col, value, asText) {
+  var rng = sheet.getRange(row, col);
+  if (asText !== false) rng.setNumberFormat('@');
+  rng.setValue(value);
 }
 
 function nowStamp() {
@@ -77,11 +123,13 @@ function nowStamp() {
 function findRegistrationByEmpno(ss, empno) {
   var sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet || sheet.getLastRow() < 2) return null;
-  var target = String(empno).trim().toUpperCase(); // 人事號比對不分大小寫
+  var target = idKey(empno); // trim + 轉大寫，並去掉殘留撇號
+  if (!target) return null;
   var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.length).getValues();
   for (var i = 0; i < values.length; i++) {
-    if (String(values[i][4]).trim().toUpperCase() === target) { // 人事號在第 5 欄
-      return { campus: values[i][1], dept: values[i][2], name: values[i][3], title: values[i][5] };
+    if (idKey(values[i][4]) === target) { // 人事號在第 5 欄
+      return { rowIndex: i + 2, campus: values[i][1], dept: values[i][2],
+               name: values[i][3], title: values[i][5], empno: normId(values[i][4]) };
     }
   }
   return null;
@@ -90,10 +138,11 @@ function findRegistrationByEmpno(ss, empno) {
 /** 以人事號在報到/簽退資料中查詢該列，回傳列號與報到/簽退時間，否則 null */
 function findCheckinRow(sheet, empno) {
   if (!sheet || sheet.getLastRow() < 2) return null;
-  var target = String(empno).trim().toUpperCase(); // 人事號比對不分大小寫
+  var target = idKey(empno); // trim + 轉大寫，並去掉殘留撇號
+  if (!target) return null;
   var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, CHECKIN_HEADERS.length).getValues();
   for (var i = 0; i < values.length; i++) {
-    if (String(values[i][5]).trim().toUpperCase() === target) { // 人事號在第 6 欄
+    if (idKey(values[i][5]) === target) { // 人事號在第 6 欄
       return { rowIndex: i + 2, checkin: values[i][0], checkout: values[i][1], name: values[i][4] };
     }
   }
@@ -119,22 +168,29 @@ function doPost(e) {
   }
 }
 
-/** 報名寫入 */
+/** 報名寫入：先擋重複（不分大小寫、忽略前後空白），再擋額滿 */
 function handleRegister(ss, data) {
   var sheet = getOrCreateSheet(ss, SHEET_NAME, HEADERS);
+  var empno = normId(data.empno);
+  if (!empno) return jsonOut({ result: 'error', message: '請輸入人事號' });
+
+  var dup = findRegistrationByEmpno(ss, empno);
+  if (dup) {
+    return jsonOut({ result: 'duplicate', name: dup.name, empno: dup.empno });
+  }
   if (countRegistrations(sheet) >= CAPACITY) {
     return jsonOut({ result: 'full', capacity: CAPACITY });
   }
-  sheet.appendRow([
+  appendRowSafe(sheet, [
     nowStamp(), data.campus || '', data.dept || '', data.name || '',
-    empnoAsText(data.empno), data.title || '', data.phone || '', data.email || ''
-  ]);
+    empno, data.title || '', normId(data.phone), data.email || ''
+  ], TEXT_COLS[SHEET_NAME]);
   return jsonOut({ result: 'success' });
 }
 
 /** 報到：驗證人事號、防重複報到 */
 function handleCheckin(ss, data) {
-  var empno = String(data.empno || '').trim();
+  var empno = normId(data.empno);
   if (!empno) return jsonOut({ result: 'error', message: '請輸入人事號' });
 
   var reg = findRegistrationByEmpno(ss, empno);
@@ -149,16 +205,17 @@ function handleCheckin(ss, data) {
   }
   if (row && !row.checkin) {
     // 已先簽退但無報到紀錄 → 補上報到時間
-    csheet.getRange(row.rowIndex, 1).setValue(ts);
+    setCellSafe(csheet, row.rowIndex, 1, ts);
   } else {
-    csheet.appendRow([ts, '', reg.campus, reg.dept, reg.name, empnoAsText(empno), reg.title]);
+    appendRowSafe(csheet, [ts, '', reg.campus, reg.dept, reg.name, empno, reg.title],
+      TEXT_COLS[CHECKIN_SHEET_NAME]);
   }
   return jsonOut({ result: 'success', mode: 'checkin', name: reg.name, campus: reg.campus, dept: reg.dept, title: reg.title, time: ts });
 }
 
 /** 簽退：驗證人事號、防重複簽退；未報到者仍可簽退（報到時間留空） */
 function handleCheckout(ss, data) {
-  var empno = String(data.empno || '').trim();
+  var empno = normId(data.empno);
   if (!empno) return jsonOut({ result: 'error', message: '請輸入人事號' });
 
   var reg = findRegistrationByEmpno(ss, empno);
@@ -172,9 +229,10 @@ function handleCheckout(ss, data) {
     if (row.checkout) {
       return jsonOut({ result: 'already', mode: 'checkout', name: reg.name, campus: reg.campus, dept: reg.dept, time: row.checkout });
     }
-    csheet.getRange(row.rowIndex, 2).setValue(ts); // 簽退時間在第 2 欄
+    setCellSafe(csheet, row.rowIndex, 2, ts); // 簽退時間在第 2 欄
   } else {
-    csheet.appendRow(['', ts, reg.campus, reg.dept, reg.name, empnoAsText(empno), reg.title]);
+    appendRowSafe(csheet, ['', ts, reg.campus, reg.dept, reg.name, empno, reg.title],
+      TEXT_COLS[CHECKIN_SHEET_NAME]);
   }
   return jsonOut({ result: 'success', mode: 'checkout', name: reg.name, campus: reg.campus, dept: reg.dept, title: reg.title, time: ts });
 }
@@ -183,15 +241,15 @@ function handleCheckout(ss, data) {
 function handleSurvey(ss, data) {
   var sheet = getOrCreateSheet(ss, SURVEY_SHEET_NAME, SURVEY_HEADERS);
   var a = data.answers || {};
-  var empno = String(data.empno || '').trim();
+  var empno = normId(data.empno);
   var reg = empno ? findRegistrationByEmpno(ss, empno) : null;
-  sheet.appendRow([
+  appendRowSafe(sheet, [
     nowStamp(),
-    reg ? reg.campus : '', reg ? reg.dept : '', reg ? reg.name : '', empnoAsText(empno), reg ? reg.title : '',
+    reg ? reg.campus : '', reg ? reg.dept : '', reg ? reg.name : '', empno, reg ? reg.title : '',
     a.q1 || '', a.q2 || '', a.q3 || '', a.q4 || '', a.q5 || '',
     a.q6 || '', a.q7 || '', a.q8 || '', a.q9 || '', a.q10 || '',
     data.comment || ''
-  ]);
+  ], TEXT_COLS[SURVEY_SHEET_NAME]);
   return jsonOut({ result: 'success' });
 }
 
@@ -204,7 +262,9 @@ function doGet() {
     if (sheet && sheet.getLastRow() > 1) {
       var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS.length).getValues();
       records = values.map(function (r) {
-        return { time: r[0], campus: r[1], dept: r[2], name: r[3], empno: r[4], title: r[5], phone: r[6], email: r[7] };
+        // 讀取端一律去掉殘留撇號並 trim，相容舊資料
+        return { time: normId(r[0]), campus: r[1], dept: r[2], name: r[3],
+                 empno: normId(r[4]), title: r[5], phone: normId(r[6]), email: r[7] };
       });
     }
     return jsonOut({ result: 'success', count: records.length, capacity: CAPACITY, full: records.length >= CAPACITY, records: records });
@@ -233,33 +293,320 @@ function setupSurveySheet() {
   sheet.setFrozenRows(1);
 }
 
+/* ══════════════════════════════════════════════════════════
+ * 維護工具：修復、診斷、匯出、驗收
+ * 選單函式只要「儲存」即可執行，不必重新部署；
+ * 只有網頁應用程式端點（doGet/doPost）需要「新版本」部署。
+ * ══════════════════════════════════════════════════════════ */
+
+/** 試算表開啟時建立自訂選單 */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('🛠 資料維護')
+    .addItem('① 修復文字欄（去撇號／設純文字）', 'repairTextColumns')
+    .addItem('② 診斷文字欄', 'diagnoseTextColumns')
+    .addSeparator()
+    .addItem('③ 匯出 Excel (.xlsx)', 'exportAllXlsx')
+    .addItem('④ 匯出 CSV', 'exportAllCsv')
+    .addSeparator()
+    .addItem('⑤ 執行驗收測試', 'runAcceptanceTest')
+    .addToUi();
+}
+
 /**
- * 一次性：將人事號欄設為純文字，避免如 8607E7 被轉成科學記號數字，
- * 並列出目前已被轉成數字的可疑人事號（需手動重新輸入原值）。
- * 範圍：工作坊報名資料 E 欄、工作坊報到/簽退資料 F 欄、工作坊滿意度調查 E 欄。
+ * 修復既有資料：無條件整欄重寫。
+ * clearFormat() → 設 @ → 寫回清理過的值。
+ * 不以「值開頭是不是撇號」判斷——撇號可能是儲存格的文字標記，
+ * 值讀起來乾淨但畫面與公式列仍有撇號，以值判斷會什麼都不做。
+ * 可重複執行。
  */
-function setupEmpnoTextFormat() {
+function repairTextColumns() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var targets = [
-    { name: SHEET_NAME, col: 5, colLabel: 'E' },          // 報名：人事號在 E 欄
-    { name: CHECKIN_SHEET_NAME, col: 6, colLabel: 'F' },  // 報到/簽退：人事號在 F 欄
-    { name: SURVEY_SHEET_NAME, col: 5, colLabel: 'E' }    // 滿意度調查：人事號在 E 欄
-  ];
-  targets.forEach(function (t) {
-    var sheet = ss.getSheetByName(t.name);
-    if (!sheet) return;
-    sheet.getRange(1, t.col, sheet.getMaxRows(), 1).setNumberFormat('@'); // 純文字
-    if (sheet.getLastRow() > 1) {
-      var values = sheet.getRange(2, t.col, sheet.getLastRow() - 1, 1).getValues();
-      values.forEach(function (r, i) {
-        if (typeof r[0] === 'number') {
-          Logger.log('⚠️ ' + t.name + ' 第 ' + (i + 2) + ' 列（' + t.colLabel + '欄）人事號為數字：' +
-            r[0] + '，可能已被自動轉換，請手動重新輸入原值');
+  var report = [], lost = [];
+
+  Object.keys(TEXT_COLS).forEach(function (name) {
+    var sheet = ss.getSheetByName(name);
+    if (!sheet) { report.push('（略過）找不到分頁：' + name); return; }
+    var last = sheet.getLastRow();
+
+    TEXT_COLS[name].forEach(function (col) {
+      var n = Math.max(0, last - 1);
+      var raw = n ? sheet.getRange(2, col, n, 1).getValues() : [];
+      var disp = n ? sheet.getRange(2, col, n, 1).getDisplayValues() : [];
+
+      // 無條件整欄重寫：先清格式，再設純文字
+      var whole = sheet.getRange(1, col, sheet.getMaxRows(), 1);
+      whole.clearFormat();
+      whole.setNumberFormat('@');
+
+      if (n) {
+        var cleaned = [];
+        for (var i = 0; i < n; i++) {
+          var v = raw[i][0];
+          var isNum = (typeof v === 'number');
+          var isDate = Object.prototype.toString.call(v) === '[object Date]';
+          // 已被轉成數字/日期者，原字串已遺失，只能取顯示值並提醒
+          var s = normId(isNum || isDate ? disp[i][0] : v);
+          if (isNum || isDate) lost.push(name + ' 第 ' + (i + 2) + ' 列第 ' + col + ' 欄 → ' + s);
+          cleaned.push([s]);
         }
-      });
-    }
-    Logger.log('✅ ' + t.name + ' ' + t.colLabel + ' 欄已設為純文字');
+        sheet.getRange(2, col, n, 1).setValues(cleaned);
+      }
+      report.push('✅ ' + name + '（第 ' + col + ' 欄）已重寫 ' + n + ' 列');
+    });
   });
+
+  SpreadsheetApp.flush();
+  var msg = report.join('\n');
+  if (lost.length) {
+    msg += '\n\n⚠️ 下列儲存格曾被自動轉成數字/日期，原始字串已遺失，需人工確認：\n' + lost.join('\n');
+  }
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert('修復完成', msg, SpreadsheetApp.getUi().ButtonSet.OK); } catch (e) {}
+  return msg;
+}
+
+/**
+ * 診斷：列出文字欄的 getValue / getDisplayValue / getFormula / getNumberFormat，
+ * 用來判斷撇號究竟在「值」裡，還是只是儲存格的文字標記。
+ */
+function diagnoseTextColumns() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var out = [], MAX = 5;
+
+  Object.keys(TEXT_COLS).forEach(function (name) {
+    var sheet = ss.getSheetByName(name);
+    if (!sheet) return;
+    var n = Math.min(MAX, Math.max(0, sheet.getLastRow() - 1));
+    if (!n) return;
+    out.push('── ' + name + '（前 ' + n + ' 列）──');
+    TEXT_COLS[name].forEach(function (col) {
+      for (var i = 0; i < n; i++) {
+        var r = i + 2, cell = sheet.getRange(r, col);
+        var v = cell.getValue();
+        out.push('  R' + r + 'C' + col +
+          ' | 型別=' + (Object.prototype.toString.call(v) === '[object Date]' ? 'date' : typeof v) +
+          ' | 值=' + JSON.stringify(v) +
+          ' | 顯示=' + JSON.stringify(cell.getDisplayValue()) +
+          ' | 公式=' + JSON.stringify(cell.getFormula()) +
+          ' | 格式=' + JSON.stringify(cell.getNumberFormat()));
+      }
+    });
+  });
+
+  var msg = out.join('\n') || '查無資料';
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert('診斷結果（詳見執行記錄）', msg.slice(0, 1400), SpreadsheetApp.getUi().ButtonSet.OK); } catch (e) {}
+  return msg;
+}
+
+/* ── 匯出：.xlsx（每格 inlineStr 文字型別）────────────────── */
+
+function xmlEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
+
+function colLetter(n) {
+  var s = '';
+  while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = (n - m - 1) / 26; }
+  return s;
+}
+
+/** 以 inlineStr 產生工作表 XML：Excel 開啟即為文字，不會被轉換 */
+function sheetXml(rows) {
+  var xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
+  for (var r = 0; r < rows.length; r++) {
+    xml += '<row r="' + (r + 1) + '">';
+    for (var c = 0; c < rows[r].length; c++) {
+      var v = normId(rows[r][c]);
+      if (v === '') continue;
+      xml += '<c r="' + colLetter(c + 1) + (r + 1) + '" t="inlineStr"><is><t xml:space="preserve">' +
+             xmlEsc(v) + '</t></is></c>';
+    }
+    xml += '</row>';
+  }
+  return xml + '</sheetData></worksheet>';
+}
+
+/** 組出最小可用的 .xlsx（單一工作表，全文字） */
+function buildXlsxBlob(sheetTitle, rows, fileName) {
+  var title = String(sheetTitle).replace(/[\\\/\?\*\[\]:]/g, '-').slice(0, 31);
+  var parts = [
+    Utilities.newBlob(
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+      '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+      '</Types>', 'application/xml', '[Content_Types].xml'),
+    Utilities.newBlob(
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+      '</Relationships>', 'application/xml', '_rels/.rels'),
+    Utilities.newBlob(
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+      'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+      '<sheets><sheet name="' + xmlEsc(title) + '" sheetId="1" r:id="rId1"/></sheets>' +
+      '</workbook>', 'application/xml', 'xl/workbook.xml'),
+    Utilities.newBlob(
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+      '</Relationships>', 'application/xml', 'xl/_rels/workbook.xml.rels'),
+    Utilities.newBlob(sheetXml(rows), 'application/xml', 'xl/worksheets/sheet1.xml')
+  ];
+  return Utilities.zip(parts, fileName).setContentType(
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+}
+
+/* ── 匯出：CSV（識別碼欄以 ="值" 保文字）──────────────────── */
+
+/** 值看起來像數字／科學記號／0 開頭／日期時，需保護為文字 */
+function looksRisky(s) {
+  return (/^\d{12,}$/).test(s) ||
+         (/^0\d/).test(s) ||
+         (/^[+-]?\d+(\.\d+)?[eE][+-]?\d+$/).test(s) ||
+         (/^\d{1,4}[\/\-]\d{1,2}([\/\-]\d{1,4})?/).test(s);
+}
+
+/**
+ * CSV 儲存格：
+ *   - 需保護者輸出 ="值"（CSV 內為 "=""值"""），Excel 視為文字
+ *   - 以 = + - @ 開頭者加前置撇號，防公式注入
+ *   注意 ="值" 只適合用 Excel 開啟；要餵給其他系統請改用 .xlsx
+ */
+function csvCell(v, forceText) {
+  var s = normId(v);
+  if (s === '') return '""';
+  if (forceText || looksRisky(s)) {
+    return '"=""' + s.replace(/"/g, '""') + '"""';
+  }
+  if ((/^[=+\-@]/).test(s)) s = "'" + s;
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+
+function buildCsv(headers, rows, textColIdx) {
+  var isText = {};
+  (textColIdx || []).forEach(function (c) { isText[c - 1] = true; });
+  var lines = [headers.map(function (h) { return csvCell(h, false); }).join(',')];
+  rows.forEach(function (r) {
+    lines.push(r.map(function (v, i) { return csvCell(v, !!isText[i]); }).join(','));
+  });
+  return '﻿' + lines.join('\r\n'); // UTF-8 BOM
+}
+
+/** 讀出某分頁的表頭與資料（值一律正規化為乾淨字串） */
+function readSheetData(ss, name) {
+  var sheet = ss.getSheetByName(name);
+  if (!sheet || sheet.getLastRow() < 1) return null;
+  var lastCol = sheet.getLastColumn(), lastRow = sheet.getLastRow();
+  var headers = sheet.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
+  var rows = [];
+  if (lastRow > 1) {
+    var disp = sheet.getRange(2, 1, lastRow - 1, lastCol).getDisplayValues();
+    rows = disp.map(function (r) { return r.map(function (v) { return normId(v); }); });
+  }
+  return { headers: headers, rows: rows };
+}
+
+function exportAllXlsx() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var links = [];
+  Object.keys(TEXT_COLS).forEach(function (name) {
+    var d = readSheetData(ss, name);
+    if (!d) return;
+    var fname = name.replace(/[\\\/]/g, '-') + '.xlsx';
+    var blob = buildXlsxBlob(name, [d.headers].concat(d.rows), fname);
+    var file = DriveApp.createFile(blob);
+    links.push(name + '：' + file.getUrl());
+  });
+  var msg = links.length ? '已匯出至雲端硬碟：\n' + links.join('\n') : '查無資料可匯出';
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert('匯出 .xlsx 完成', msg, SpreadsheetApp.getUi().ButtonSet.OK); } catch (e) {}
+  return msg;
+}
+
+function exportAllCsv() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var links = [];
+  Object.keys(TEXT_COLS).forEach(function (name) {
+    var d = readSheetData(ss, name);
+    if (!d) return;
+    var csv = buildCsv(d.headers, d.rows, TEXT_COLS[name]);
+    var fname = name.replace(/[\\\/]/g, '-') + '.csv';
+    var file = DriveApp.createFile(Utilities.newBlob(csv, 'text/csv', fname));
+    links.push(name + '：' + file.getUrl());
+  });
+  var msg = links.length ? '已匯出至雲端硬碟：\n' + links.join('\n') : '查無資料可匯出';
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert('匯出 CSV 完成', msg, SpreadsheetApp.getUi().ButtonSet.OK); } catch (e) {}
+  return msg;
+}
+
+/* ── 驗收測試：以 8607E7 與 B41242 自動驗證 ──────────────── */
+
+function runAcceptanceTest() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var TMP = '__驗收測試__';
+  var IDS = ['8607E7', 'B41242'];
+  var out = [], pass = true;
+
+  var old = ss.getSheetByName(TMP);
+  if (old) ss.deleteSheet(old);
+  var sh = ss.insertSheet(TMP);
+  sh.appendRow(['時間', '人事號', '電話/分機']);
+
+  // 走正式寫入流程
+  IDS.forEach(function (id) {
+    appendRowSafe(sh, [nowStamp(), id, '0912345678'], [1, 2, 3]);
+  });
+  SpreadsheetApp.flush();
+
+  out.push('【驗收 3】寫入試算表');
+  IDS.forEach(function (id, i) {
+    var cell = sh.getRange(i + 2, 2);
+    var v = cell.getValue(), d = cell.getDisplayValue(), f = cell.getFormula();
+    var ok = (typeof v === 'string') && v === id && d === id &&
+             v.indexOf("'") < 0 && d.indexOf("'") < 0 && (f === '' || f === id);
+    if (!ok) pass = false;
+    out.push('  ' + id + ' → 型別=' + typeof v + '｜儲存值=' + v + '｜顯示值=' + d +
+             '｜格式=' + cell.getNumberFormat() + '｜' + (ok ? '✅ 通過' : '❌ 失敗'));
+  });
+
+  out.push('【驗收 2】比對（小寫／前後空白都要判定重複）');
+  [['8607e7', '8607E7'], ['b41242', 'B41242'], ['  B41242  ', 'B41242'],
+   [" '8607E7", '8607E7']].forEach(function (c) {
+    var ok = sameId(c[0], c[1]);
+    if (!ok) pass = false;
+    out.push('  "' + c[0] + '" vs "' + c[1] + '" → ' + (ok ? '✅ 判定重複' : '❌ 未判定'));
+  });
+
+  out.push('【驗收 4】匯出內容');
+  var rows = IDS.map(function (id) { return [nowStamp(), id, '0912345678']; });
+  var csv = buildCsv(['時間', '人事號', '電話/分機'], rows, [1, 2, 3]);
+  IDS.forEach(function (id) {
+    var ok = csv.indexOf('"=""' + id + '"""') >= 0;
+    if (!ok) pass = false;
+    out.push('  CSV ' + id + ' → ' + (ok ? '✅ 以 ="值" 輸出為文字' : '❌ 未保護'));
+  });
+  var xml = sheetXml([['時間', '人事號'], [nowStamp(), '8607E7'], [nowStamp(), 'B41242']]);
+  IDS.forEach(function (id) {
+    var ok = xml.indexOf('t="inlineStr"') >= 0 && xml.indexOf('>' + id + '<') >= 0;
+    if (!ok) pass = false;
+    out.push('  xlsx ' + id + ' → ' + (ok ? '✅ inlineStr 文字型別' : '❌ 未以文字寫入'));
+  });
+
+  ss.deleteSheet(sh);
+  var msg = (pass ? '🎉 全部通過\n\n' : '⚠️ 有項目未通過\n\n') + out.join('\n');
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert('驗收測試結果', msg, SpreadsheetApp.getUi().ButtonSet.OK); } catch (e) {}
+  return msg;
 }
 
 /* ══════════════════════════════════════════════════════════

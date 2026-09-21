@@ -143,7 +143,7 @@
   const idBox = document.createElement('div');
   idBox.className = 'q';
   idBox.innerHTML = `<p class="qt"><span class="n">#</span>人事號<span class="req">＊</span></p>
-    <input type="text" id="empno" autocomplete="off" autocapitalize="characters" placeholder="請輸入人事號">`;
+    <input type="text" id="empno" autocomplete="off" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="例：910632 或 B20715">`;
   form.appendChild(idBox);
 
   QUESTIONS.forEach((q, idx) => {
